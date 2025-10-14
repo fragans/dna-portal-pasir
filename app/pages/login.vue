@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="flex flex-col items-center justify-center min-h-screen text-center">
+    <div class="flex flex-col items-center justify-center min-h-screen">
       <div>
         <UForm
           :state="formState"
@@ -11,11 +11,11 @@
           @submit="onSubmit"
         >
           <UFormField name="email">
-            <UInput v-model="formState.email" type="text" placeholder="Email"/>
+            <UInput v-model="formState.email" size="xl" type="text" placeholder="Email"/>
           </UFormField>
           
           <UFormField name="password">
-            <UInput v-model="formState.password" :type="showPassword ? 'text' : 'password'" placeholder="Password">
+            <UInput v-model="formState.password" size="xl" :type="showPassword ? 'text' : 'password'" placeholder="Password">
               <template #trailing>
                 <UButton
                   color="neutral"
@@ -31,7 +31,7 @@
             </UInput>
           </UFormField>
           <div class="p-4 text-sm text-gray-500">
-            <UButton :loading="status === 'pending'" type="submit">Submit</UButton>
+            <UButton block :loading="status === 'pending'" type="submit">Submit</UButton>
           </div>
         </UForm>
       </div>
