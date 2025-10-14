@@ -1,6 +1,6 @@
 <template>
   <div class="max-w-xl mx-auto p-4">
-    <UBreadcrumb v-if="route.name !== 'index'" :items="crumbs" />
+    <UBreadcrumb v-if="showCrumbs" :items="crumbs" />
     <slot />
   </div>
 </template>
@@ -8,6 +8,9 @@
 import type { BreadcrumbItem } from '@nuxt/ui'
 
 const route =useRoute()
+
+const showCrumbs = computed(() => route.name !== 'index' && route.name !== 'login')
+
 const crumbs = computed<BreadcrumbItem[]>(() => {
   return [
     {

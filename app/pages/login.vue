@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="flex flex-col items-center justify-center min-h-screen">
-      <div>
+      <div v-if="!isLogin">
         <UForm
           :state="formState"
           :schema="schema"
@@ -35,7 +35,10 @@
           </div>
         </UForm>
       </div>
-      <div class="fixed bottom-2 text-xs text-gray-400">
+      <div v-else class="text-center">
+        <UButton to="/logout" size="xl">Logout?</UButton>
+      </div>
+      <div class="fixed bottom-2 right-2 text-xs text-gray-400">
         <a href="https://dummyjson.com/users" target="_blank">cheat</a>
       </div>
     </div>
@@ -48,8 +51,9 @@ import * as z from 'zod'
 import { loginUser } from '~~/utils/apiRepo/auth';
 
 
-const userStore = useUserStore()
 const toast = useToast()
+const userStore = useUserStore()
+const { isLogin } = storeToRefs(userStore)
 
 const showPassword = ref(false)
 const formState = reactive({
@@ -58,8 +62,8 @@ const formState = reactive({
 })
 
 const schema = z.object({
-  password: z.string('Password tidak boleh kosong').min(6, "Password minimal 6 karakter"),
-  email: z.string('Email tidak boleh kosong').min(6, "Email minimal 6 karakter"),
+  password: z.string('Password tidak boleh kosong').min(5, "Password minimal 6 karakter"),
+  email: z.string('Email tidak boleh kosong').min(5, "Email minimal 6 karakter"),
   // email: z.string('Email tidak boleh kosong').email(6, "Email tidak valid"),,
 });
 type Schema = z.output<typeof schema>

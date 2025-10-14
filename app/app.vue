@@ -1,7 +1,7 @@
 <template>
   <UApp>
     <UHeader toggle-side="left" mode="slideover">
-      <UNavigationMenu :items="items" />
+      <UNavigationMenu v-if="showCrumbs" :items="items" />
 
       <template #title>
         dna-portal-pasir
@@ -29,8 +29,11 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 import { useUserStore } from '~/stores/user';
 
+const route = useRoute()
 const userStore = useUserStore()
 const { getFirstName, getUserAvatar, isLogin } = storeToRefs(userStore)
+
+const showCrumbs = computed(() => route.name !== 'logout' && route.name !== 'login')
 
 const items = computed<NavigationMenuItem[]>(() => {
   if (isLogin.value) {
