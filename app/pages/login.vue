@@ -1,12 +1,6 @@
 <template>
   <div>
     <div class="flex flex-col items-center justify-center min-h-screen text-center">
-      <!-- <h2 class="uppercase">
-          login page
-      </h2>
-      <h1>
-          dna-portal-pasir
-      </h1> -->
       <div>
         <UForm
           :state="formState"
@@ -16,17 +10,33 @@
           class="space-y-4"
           @submit="onSubmit"
         >
-          <UFormField label="Email" name="email">
-            <UInput v-model="formState.email" type="text" />
+          <UFormField name="email">
+            <UInput v-model="formState.email" type="text" placeholder="Email"/>
           </UFormField>
           
-          <UFormField label="Password" name="password">
-            <UInput v-model="formState.password" type="password" />
+          <UFormField name="password">
+            <UInput v-model="formState.password" :type="showPassword ? 'text' : 'password'" placeholder="Password">
+              <template #trailing>
+                <UButton
+                  color="neutral"
+                  variant="link"
+                  size="sm"
+                  :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                  :aria-label="showPassword ? 'Hide password' : 'showPassword password'"
+                  :aria-pressed="showPassword"
+                  aria-controls="password"
+                  @click="showPassword = !showPassword"
+                />
+              </template>
+            </UInput>
           </UFormField>
           <div class="p-4 text-sm text-gray-500">
-            <UButton type="submit">Submit</UButton>
+            <UButton :loading="status === 'pending'" type="submit">Submit</UButton>
           </div>
         </UForm>
+      </div>
+      <div class="fixed bottom-2 text-xs text-gray-400">
+        <a href="https://dummyjson.com/users" target="_blank">cheat</a>
       </div>
     </div>
   </div>
@@ -36,15 +46,15 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 import { loginUser } from '~~/utils/apiRepo/auth';
 
-
+const showPassword = ref(false)
 const formState = reactive({
   email: undefined,
   password: undefined
 })
 
 const schema = z.object({
-  password: z.string().min(6, "password minimal 6 karakter"),
-  email: z.string().min(6, "email minimal 6 karakter"),
+  password: z.string('email tidak boleh kosong').min(6, "password minimal 6 karakter"),
+  email: z.string('password tidak boleh kosong').min(6, "email minimal 6 karakter"),
   // email: z.email("alamat email tidak valid"),
 });
 type Schema = z.output<typeof schema>
@@ -57,7 +67,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (status.value === 'success' && data.value) {
     console.log('login berhasil', data.value);
     useCookie('dpp._token').value=data.value.accessToken // 7 hari
-    // await useRouter().push('/')
+    await useRouter().push('/')
   } else {
     console.log('login gagal')
   }

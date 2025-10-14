@@ -25,7 +25,6 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 
 const route = useRoute()
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const items = computed<NavigationMenuItem[]>(() => [{
   label: 'Docs',
   to: '/docs/getting-started',
