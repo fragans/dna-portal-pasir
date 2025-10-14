@@ -1,10 +1,12 @@
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default defineNuxtRouteMiddleware(async (to, from) => {
-  const toast = useToast() // make sure to call the composable at the top level
+  const toast = useToast()
+
   if (to.path !== '/login') {
     const token = useCookie('dpp._token')
-    if (!token.value) {
+    const refresh = useCookie('dpp._token_refresh')
+    if (!token.value && !refresh.value) {
       console.log('Not authenticated, redirect to login');
       toast.add({
         title: 'Tidak Punya Akses',

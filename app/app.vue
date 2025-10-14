@@ -7,8 +7,10 @@
         dna-portal-pasir
       </template>
 
-      <template #right>
-        helo user
+      <template v-if="isLogin" #right >
+        <UAvatar :src="getUserAvatar"/>
+        Halo
+        <span class="font-bold"> {{ getFirstName }} </span>
       </template>
 
       <template #body>
@@ -25,28 +27,23 @@
 </template>
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import { useUserStore } from '~/stores/user';
 
-const route = useRoute()
+const userStore = useUserStore()
+const { getFirstName, getUserAvatar, isLogin } = storeToRefs(userStore)
 
-const items = computed<NavigationMenuItem[]>(() => [{
-  label: 'Docs',
-  to: '/docs/getting-started',
-  icon: 'i-lucide-book-open',
-  active: route.path.startsWith('/docs/getting-started')
-}, {
-  label: 'Components',
-  to: '/docs/components',
-  icon: 'i-lucide-box',
-  active: route.path.startsWith('/docs/components')
-}, {
-  label: 'Figma',
-  icon: 'i-simple-icons-figma',
-  to: 'https://go.nuxt.com/figma-ui',
-  target: '_blank'
-}, {
-  label: 'Releases',
-  icon: 'i-lucide-rocket',
-  to: 'https://github.com/nuxt/ui/releases',
-  target: '_blank'
-}])
+const items = computed<NavigationMenuItem[]>(() => {
+  if (isLogin.value) {
+    return [
+      { label: 'Home', icon: 'i-lucide-home', to: '/' },
+      { label: 'Profile', icon: 'i-lucide-user', to: '/profile' },
+      { label: 'Logout', icon: 'i-lucide-log-out', to: '/logout' },
+    ]
+  } 
+  return [
+    { label: 'Home', icon: 'i-lucide-home', to: '/' },
+    { label: 'Login', icon: 'i-lucide-log-in', to: '/login' },
+  ]
+})
+
 </script>

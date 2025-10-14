@@ -42,9 +42,14 @@
   </div>
 </template>
 <script setup lang="ts">
+import { useUserStore } from '~/stores/user';
 import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 import { loginUser } from '~~/utils/apiRepo/auth';
+
+
+const userStore = useUserStore()
+const toast = useToast()
 
 const showPassword = ref(false)
 const formState = reactive({
@@ -65,11 +70,17 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   await execute()
   
   if (status.value === 'success' && data.value) {
-    console.log('login berhasil', data.value);
-    useCookie('dpp._token').value=data.value.accessToken // 7 hari
+    useCookie('dpp._token').value = data.value.accessToken
+    useCookie('dpp._token_refresh').value = data.value.refreshToken
+    
+    userStore.setUserCookie(data.value)
     await useRouter().push('/')
   } else {
-    console.log('login gagal')
+    toast.add({
+      title: 'Gagal Login',
+      description: 'Periksa kembali email dan password anda',
+      icon: 'i-lucide-alert-circle',
+    })
   }
 }
 

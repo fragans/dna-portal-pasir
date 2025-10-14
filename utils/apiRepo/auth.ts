@@ -26,3 +26,22 @@ export function loginUser(payload: LoginForm) {
     immediate: false
   })
 }
+
+
+export function getProfile(token:string) {
+  const profileUrl = 'https://dummyjson.com/auth/me'
+  return useAsyncData('user-profile', async () => {
+    const res = await $fetch(profileUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    return res
+  },
+  { 
+    immediate: false
+  })
+
+}
