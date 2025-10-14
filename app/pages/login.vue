@@ -28,6 +28,9 @@
           </div>
         </UForm>
       </div>
+      <div class="fixed bottom-2 text-xs text-gray-400">
+        <a href="https://dummyjson.com/users" target="_blank">cheat</a>
+      </div>
     </div>
   </div>
 </template>
