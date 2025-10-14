@@ -6,6 +6,10 @@ import type { Progress } from '@aws-sdk/lib-storage'
 
 import { ref, onMounted } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
+/**
+ * https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/
+ */
+
 export function useS3Upload() {
   const toast = useToast()
   const isUploading = ref(false)
