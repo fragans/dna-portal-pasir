@@ -31,7 +31,7 @@
             </UInput>
           </UFormField>
           <div class="p-4 text-sm text-gray-500">
-            <UButton block :loading="status === 'pending'" type="submit">Submit</UButton>
+            <UButton size="xl" block :loading="status === 'pending'" type="submit">Submit</UButton>
           </div>
         </UForm>
       </div>
@@ -53,9 +53,9 @@ const formState = reactive({
 })
 
 const schema = z.object({
-  password: z.string('email tidak boleh kosong').min(6, "password minimal 6 karakter"),
-  email: z.string('password tidak boleh kosong').min(6, "email minimal 6 karakter"),
-  // email: z.email("alamat email tidak valid"),
+  password: z.string('Password tidak boleh kosong').min(6, "Password minimal 6 karakter"),
+  email: z.string('Email tidak boleh kosong').min(6, "Email minimal 6 karakter"),
+  // email: z.string('Email tidak boleh kosong').email(6, "Email tidak valid"),,
 });
 type Schema = z.output<typeof schema>
 

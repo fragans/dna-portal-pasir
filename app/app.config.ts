@@ -5,9 +5,10 @@ export default defineAppConfig({
     duration: 5000
   },
   ui: {
+    colorMode: 'dark' as const,
     input: {
       slots: {
-        root: 'relative inline-flex items-center w-full',
+        root: 'w-full',
       }
     }
   }
