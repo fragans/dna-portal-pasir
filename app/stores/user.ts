@@ -1,28 +1,38 @@
 export const useUserStore = defineStore('user', () => {
-  const userCookie = useCookie<Partial<LoginResponse>>('dpp._user')
+  const userCookie = useCookie<UserData>('dpp._user')
   const tokenCookie = useCookie<string>('dpp._token')
-  const userProfile = ref<UserProfile>()
-  function setUserCookie(user: Partial<LoginResponse>) {
-    const storedData: Partial<LoginResponse> = {
-      username: user.username || '',
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      image: user.image || '',
-    }
-    userCookie.value = storedData
+  // const userProfile = ref<UserData>()
+  
+  function setUserCookie(user: UserData) {
+    userCookie.value = user
   }
   const getFirstName = computed(() => {
-    return userCookie.value?.firstName || ''
+    return userCookie.value?.fullname || ''
   })
   const getLastName = computed(() => {
-    return userCookie.value?.lastName || ''
+    return userCookie.value?.fullname || ''
   })
   const getUserAvatar = computed(() => {
-    return userCookie.value?.image || ''
-    // return 'https://icons.veryicon.com/png/o/miscellaneous/standard/avatar-15.png'
+    return `https://placehold.co/600x400/orange/white?text=${getInitialName.value}`
   })
+
+  const getInitialName = computed(() => {
+    const fullname = userCookie.value?.fullname || 'User'
+    const names = fullname.split(' ')
+    if (names.length === 0) return 'U'
+    let initials = ''
+    names.forEach(word => {
+      initials = initials + word.charAt(0).toUpperCase()
+    });
+    return initials
+  })
+
   const getUsername = computed(() => {
-    return userCookie.value?.username || ''
+    return userCookie.value?.masterUserID || ''
+  })
+
+  const getUserProfile = computed<UserData | null>(() => {
+    return userCookie.value || null
   })
 
   const isLogin = computed<boolean>(() => {
@@ -32,26 +42,30 @@ export const useUserStore = defineStore('user', () => {
     return tokenCookie.value || ''
   })
 
+  const getDisplayRole = computed(() => {
+    if (!getUserProfile.value) return ''
+    if (getUserProfile.value?.role === 'user')  return ''
+    return getUserProfile.value?.role === 'admin' ? 'Administrator' : ''
+  })
+
   function logoutUser() {
     useCookie('dpp._token').value = null
     useCookie('dpp._token_refresh').value = null
     useCookie('dpp._user').value = null
   }
 
-  function setUserProfile(user: Partial<UserProfile>) {
-    userProfile.value = user as UserProfile
-  }
+  
 
   return {
     setUserCookie,
-    setUserProfile,
     logoutUser,
+    getUserProfile,
+    getDisplayRole,
     getUsername,
     getFirstName,
     getLastName,
     getUserAvatar,
     isLogin,
-    getToken,
-    userProfile
+    getToken
   }
 })

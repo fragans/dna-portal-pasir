@@ -9,6 +9,18 @@ export default defineAppConfig({
       slots: {
         root: 'w-full',
       }
+    },
+    textarea:{
+      slots: {
+        root: 'w-full',
+      }
+    },
+    fileUpload: {
+      variants: {
+        dropzone: {
+          true: 'w-full'
+        }
+      }
     }
   }
 })

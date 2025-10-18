@@ -1,11 +1,23 @@
-interface LoginResponse {
-  id: number;
-  username: string;
+
+interface UserData {
+  masterUserID: string;
+  fullname: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  gender: string;
-  image: string;
-  accessToken: string;
-  refreshToken: string;
+  phoneNumber: string;
+  address: string;
+  role: string;
+  birthPlaceDate: string;
+  assignmentPlace: string;
+  createdBy: string;
+  createdDate: string;
+  modifiedBy: string | null;
+  modifiedDate: string | null;
+  deletedBy: string | null;
+  deletedDate: string | null;
+}
+
+interface LoginResponse {
+  message: string;
+  token: string;
+  data: UserData;
 }

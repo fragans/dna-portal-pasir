@@ -9,8 +9,7 @@
 
       <template v-if="isLogin" #right >
         <UAvatar :src="getUserAvatar"/>
-        Halo
-        <span class="font-bold"> {{ getFirstName }} </span>
+        {{ getDisplayRole }}
       </template>
 
       <template #body>
@@ -31,7 +30,7 @@ import { useUserStore } from '~/stores/user';
 
 const route = useRoute()
 const userStore = useUserStore()
-const { getFirstName, getUserAvatar, isLogin } = storeToRefs(userStore)
+const { getUserAvatar, isLogin, getDisplayRole } = storeToRefs(userStore)
 
 const showCrumbs = computed(() => route.name !== 'logout' && route.name !== 'login')
 

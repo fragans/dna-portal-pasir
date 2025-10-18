@@ -74,10 +74,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   await execute()
   
   if (status.value === 'success' && data.value) {
-    useCookie('dpp._token').value = data.value.accessToken
-    useCookie('dpp._token_refresh').value = data.value.refreshToken
+    console.log('login success', data.value);
     
-    userStore.setUserCookie(data.value)
+    useCookie('dpp._token').value = data.value.token
+    // useCookie('dpp._token_refresh').value = data.value.refreshToken
+    
+    userStore.setUserCookie(data.value.data)
     await useRouter().push('/')
   } else {
     toast.add({
