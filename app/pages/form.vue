@@ -2,7 +2,7 @@
   <section class="max-w-3xl mx-auto my-8">
     <div class="flex gap-4 flex-col md:flex-row">
       <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 p-4 md:p-0 w-full" @submit="onSubmit">
-        <UAccordion :items="items" class="opacity-50">
+        <UAccordion :items="[{ label:  getUsername , icon: 'i-lucide-swatch-book' }]" class="opacity-50">
           <template #content>
             <div class="grid grid-cols-2 gap-4">
               <UFormField name="date">
@@ -16,16 +16,16 @@
           </template>
         </UAccordion>
 
-        <UFormField name="sopir" label="Nama Sopir">
+        <UFormField name="namaSopir" label="Nama Sopir">
           <UInput v-model="formState.namaSopir" size="xl" type="text" placeholder="Nama Sopir"/>
         </UFormField>
 
-        <UFormField name="Batch" label="Batch">
-          <UInput v-model="formState.namaSopir" size="xl" type="text" placeholder="Pengiriman ke-"/>
+        <UFormField name="batch" label="Batch">
+          <UInput v-model="formState.batch" size="xl" type="text" placeholder="Pengiriman ke-"/>
         </UFormField>
 
-        <UFormField name="Bobot" label="Bobot Muatan">
-          <UInput v-model="formState.namaSopir" size="xl" type="number">
+        <UFormField name="muatan" label="Bobot Muatan">
+          <UInput v-model="formState.muatan" size="xl" type="number">
             <template #trailing>
               <div class="flex items-center gap-3">
                 <span> Ton </span>
@@ -34,15 +34,21 @@
             </UInput>
         </UFormField>
 
-        <UFormField name="plat" label="No Kendaraan Supir">
+        <UFormField name="noSupir" label="No Kendaraan Supir">
           <UInput v-model="formState.noSupir" size="xl" type="text" placeholder="AB1234CD"/>
         </UFormField>
         <UFormField name="keterangan" label="Keterangan">
-          <UTextarea v-model="formState.noSupir" size="xl" type="text" placeholder=""/>
+          <UTextarea v-model="formState.keterangan" size="xl" type="text" placeholder=""/>
         </UFormField>
 
-        <UFormField name="images" label="Video/Foto">
-          <UFileUpload v-model="formState.images" class="w-full" description="PNG or JPG (max. 5MB per file)" :multiple accept="image/*" />
+        <UFormField name="dokumen" label="Video/Foto">
+          <UFileUpload
+            v-model="formState.dokumen"
+            class="w-full"
+            :description="uploadHint"
+            multiple
+            accept="image/*, video/*" 
+          />
         </UFormField>
 
         
@@ -81,7 +87,7 @@
 </template>
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user'
-import type { FormSubmitEvent, AccordionItem } from '@nuxt/ui'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 const { getUsername } = useUserStore()
 const toast = useToast()
@@ -107,38 +113,43 @@ const getCoordinates = computed(() => {
   return formState.location
 })
 
+const uploadHint = 'PNG or JPG (max. 5MB per file)<br>Minimal 1 foto'
 const { url:imageUrl, isUploading, uploadProgress, upload } = useS3Upload()
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+const ACCEPTED_DOC_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "video/mp4", "video/quicktime"];
 const formState = reactive({
   date: '',
   location: '',
-  namaSopir:undefined,
-  images:[] as File[],
-  noSupir:undefined,
+  namaSopir: undefined,
+  dokumen: [] as File[],
+  noSupir: undefined,
+  batch: undefined,
+  muatan: undefined,
+  keterangan: undefined,
 })
-const fileValidator = z.instanceof(File, { message: 'Image harus diisi.' })
-    .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
-    .refine( (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
-    )
+// validator
+const requiredMessage = 'harus diisi'
+const fileValidator = z.instanceof(File, { message: `Image ${requiredMessage}.` })
+    .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 20MB.`)
+    .refine( (file) => ACCEPTED_DOC_TYPES.includes(file.type), "Only .jpg, .jpeg, .png and .webp formats are supported." )
 const schema = z.object({
-  noSupir: z.string().min(9, 'No kendaraan sopir harus diisi.'),
-  muatan: z.number().min(1, 'Bobot muatan harus diisi.'),
-  batch: z.string().min(1, 'Batch harus diisi.'),
-  date: z.string().min(6, 'Tanggal keberangkatan harus diisi.'),
-  namaSopir: z.string().min(1, 'Nama sopir harus diisi.'),
-  images: z.array(fileValidator).min(1, 'Foto/Video harus diisi.'),
+  date: z.string(`Tanggal keberangkatan ${requiredMessage}.`).min(6, 'Tanggal keberangkatan minimal.'),
+  noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(8, 'No kendaraan minimal 8 digit.'),
+  muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.'),
+  batch: z.string(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
+  namaSopir: z.string(`Nama sopir ${requiredMessage}.`).min(3, 'Nama sopir minimal 3 huruf.'),
+  dokumen: z.array(fileValidator).min(1, `Minimal 1 Foto ${requiredMessage}`),
+  keterangan: z.string().optional(),
 });
 type Schema = z.output<typeof schema>
-// const fetchKey = computed(() => `submit-form-checker-${new Date().getTime()}`)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  if (!formState.images) throw new Error('No file selected')
-  const [firstFile] = formState.images
-  await upload(firstFile!)
-  console.log('upload selesai', imageUrl.value);
+  if (!formState.dokumen.length) throw new Error('No file selected')
+  formState.dokumen.forEach(async (doc, index) => {
+    await upload(doc!)
+    console.log(`doc ke ${index} berhasil diupload= ${imageUrl.value}` );
+  });
   
   // if (status.value === 'success' && data.value) {
   //   console.log('login berhasil', data.value);
@@ -148,12 +159,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   //   console.log('login gagal')
   // }
 }
-const items: AccordionItem[] = [
-  {
-    label:  getUsername ,
-    icon: 'i-lucide-swatch-book'
-  },
-]
 
 async function hasLocationAccess (): Promise<boolean> {
   const perm = await navigator.permissions.query({name: 'geolocation'})

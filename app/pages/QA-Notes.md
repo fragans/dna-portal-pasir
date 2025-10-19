@@ -1,0 +1,4 @@
+- pengecekan tipe file yang valid
+- size maximal image
+- size maximal video
+- batch cuman number?
