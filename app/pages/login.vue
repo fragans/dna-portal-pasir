@@ -69,7 +69,7 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const { data, execute, status } = loginUser(formState)
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(event: FormSubmitEvent<Schema>) { 
   console.log('onSubmit', event);
   await execute()
   

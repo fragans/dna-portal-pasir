@@ -2,3 +2,7 @@
 - size maximal image
 - size maximal video
 - batch cuman number?
+- foto minimal 1, maximal 5
+- video maximal 1
+- batch optional
+- nama sopir optional
