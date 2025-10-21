@@ -66,24 +66,24 @@
       </div>
     </section>
     <!-- <div  class="flex flex-col justify-center p-4 gap-4">
-          <a
-            href="https://console.wasabisys.com/file_manager/dna-portal-pasir-silika?region=ap-southeast-1"
-            target="_blank"
-            class="text-blue-600 hover:underline"
-          >
-            <span> check wasabi console </span>
-            <UIcon name="i-lucide-external-link" class="size-3" />
-          </a>
-          <a
-            v-if="imageUrl"
-            target="_blank"
-            :href="imageUrl"
-            class="w-[200px] text-blue-600 line-clamp-1 hover:underline"
-          >
-          {{ imageUrl }}
-          </a>
-          <p v-else>upload an Image first! <UIcon name="lucide:angry" class="size-3" /> </p>
-        </div> -->
+      <a
+        href="https://console.wasabisys.com/file_manager/dna-portal-pasir-silika?region=ap-southeast-1"
+        target="_blank"
+        class="text-blue-600 hover:underline"
+      >
+        <span> check wasabi console </span>
+        <UIcon name="i-lucide-external-link" class="size-3" />
+      </a>
+      <a
+        v-if="imageUrl"
+        target="_blank"
+        :href="imageUrl"
+        class="w-[200px] text-blue-600 line-clamp-1 hover:underline"
+      >
+      {{ imageUrl }}
+      </a>
+      <p v-else>upload an Image first! <UIcon name="lucide:angry" class="size-3" /> </p>
+    </div> -->
   </div>
 </template>
 <script setup lang="ts">
@@ -157,7 +157,7 @@ const fileValidator = z.instanceof(File, { message: `Image ${requiredMessage}.` 
     .refine( (file) => ACCEPTED_DOC_TYPES.includes(file.type), "Only .jpg, .jpeg, .png, .webp, .mp4, and .mov formats are supported." )
 const schema = z.object({
   date: z.string(`Tanggal keberangkatan ${requiredMessage}.`).min(6, 'Tanggal keberangkatan minimal.'),
-  noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(5, 'No kendaraan minimal 8 digit.').max(9, 'No kendaraan minimal 8 digit.'),
+  noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(4, 'No kendaraan minimal 4 digit. ex: AB1234CD').max(9, 'No kendaraan minimal 8 digit. ex: AB1234CD'),
   muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.'),
   batch: z.string(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
   namaSopir: z.string(`Nama sopir ${requiredMessage}.`).min(3, 'Nama sopir minimal 3 huruf.'),

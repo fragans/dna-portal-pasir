@@ -6,6 +6,9 @@ export const useUserStore = defineStore('user', () => {
   function setUserCookie(user: UserData) {
     userCookie.value = user
   }
+  function setTokenCookie(token: string) {
+    tokenCookie.value = token
+  }
   const getFirstName = computed(() => {
     return userCookie.value?.fullname || ''
   })
@@ -50,13 +53,13 @@ export const useUserStore = defineStore('user', () => {
 
   function logoutUser() {
     useCookie('dpp._token').value = null
-    useCookie('dpp._token_refresh').value = null
     useCookie('dpp._user').value = null
   }
 
   
 
   return {
+    setTokenCookie,
     setUserCookie,
     logoutUser,
     getUserProfile,

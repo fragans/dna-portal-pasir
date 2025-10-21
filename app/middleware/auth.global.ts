@@ -5,8 +5,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   if (to.path !== '/login') {
     const token = useCookie('dpp._token')
-    // const refresh = useCookie('dpp._token_refresh')
-    if (!token.value) {
+    const user = useCookie('dpp._user')
+    console.log({token, user});
+    
+    if (!token.value && !user.value) {
       console.log('Not authenticated, redirect to login');
       toast.add({
         title: 'Tidak Punya Akses',

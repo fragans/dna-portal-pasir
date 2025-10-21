@@ -21,20 +21,20 @@ export function useS3Upload() {
   const ongoingUpload = useLocalStorage('ongoingUpload', undefined)
   const uploadObject = ref()
   const VITE_AWS_BUCKET_NAME = 'dna-portal-pasir-silika'
+  const VITE_WASABI_ACCESS_KEY_ID = 'IFGBWYV0LJNCBYZAVTWX'
+  const VITE_WASABI_SECRET_ACCESS_KEY = 'Ba5bO5hdgHTBhinENaWyId6ebpyZAn44dsD4K8Ov'
+  const VITE_WASABI_REGION = 'ap-southeast-1'
 
   const createClient =  () => {
-    const accessKeyId = 'IFGBWYV0LJNCBYZAVTWX'
-    const secretAccessKey = 'Ba5bO5hdgHTBhinENaWyId6ebpyZAn44dsD4K8Ov'
-    const region = 'ap-southeast-1'
     // const Bucket = 'dna-portal-pasir-silika'
 
     const config: S3ClientConfig = {
-      region,
+      region: VITE_WASABI_REGION,
       endpoint: "https://s3.ap-southeast-1.wasabisys.com", // ✅ Wasabi endpoint
       forcePathStyle: true, 
       credentials: {
-        accessKeyId,
-        secretAccessKey,
+        accessKeyId: VITE_WASABI_ACCESS_KEY_ID,
+        secretAccessKey: VITE_WASABI_SECRET_ACCESS_KEY,
       },
     }
     // params: {

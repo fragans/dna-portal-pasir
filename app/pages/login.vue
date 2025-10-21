@@ -76,7 +76,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (status.value === 'success' && data.value) {
     console.log('login success', data.value);
     
-    useCookie('dpp._token').value = data.value.token
+    userStore.setTokenCookie(data.value.token)
     // useCookie('dpp._token_refresh').value = data.value.refreshToken
     
     userStore.setUserCookie(data.value.data)

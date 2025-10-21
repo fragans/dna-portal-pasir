@@ -9,7 +9,7 @@ import type { BreadcrumbItem } from '@nuxt/ui'
 
 const route =useRoute()
 
-const showCrumbs = computed(() => route.name !== 'index' && route.name !== 'login')
+const showCrumbs = computed(() => route.name !== 'index' && route.name !== 'login' && route.name !== 'logout')
 
 const crumbs = computed<BreadcrumbItem[]>(() => {
   return [
