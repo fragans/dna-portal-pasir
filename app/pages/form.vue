@@ -22,7 +22,7 @@
           </UFormField>
 
           <UFormField name="batch" label="Batch">
-            <UInput v-model="formState.batch" size="xl" type="text" placeholder="Pengiriman ke-"/>
+            <UInput v-model="formState.batch" size="xl" type="number" placeholder="Pengiriman ke-"/>
           </UFormField>
 
           <UFormField name="muatan" label="Bobot Muatan">
@@ -53,13 +53,9 @@
           </UFormField>
 
           
-          <div v-if="!imageUrl" class="p-4 text-sm text-gray-500">
-            <UButton block type="submit" :loading="isUploading">
+          <div class="p-4 text-sm text-gray-500">
+            <UButton block type="submit">
               Submit
-              <span>
-                <template v-if="isUploading"> ({{ uploadProgress }}%) </template>
-                <template v-else-if="imageUrl"> - Selesai </template>
-              </span>
             </UButton>
           </div>
         </UForm>
@@ -68,25 +64,6 @@
         {{ jobs }}
       </pre>
     </section>
-    <!-- <div  class="flex flex-col justify-center p-4 gap-4">
-      <a
-        href="https://console.wasabisys.com/file_manager/dna-portal-pasir-silika?region=ap-southeast-1"
-        target="_blank"
-        class="text-blue-600 hover:underline"
-      >
-        <span> check wasabi console </span>
-        <UIcon name="i-lucide-external-link" class="size-3" />
-      </a>
-      <a
-        v-if="imageUrl"
-        target="_blank"
-        :href="imageUrl"
-        class="w-[200px] text-blue-600 line-clamp-1 hover:underline"
-      >
-      {{ imageUrl }}
-      </a>
-      <p v-else>upload an Image first! <UIcon name="lucide:angry" class="size-3" /> </p>
-    </div> -->
   </div>
 </template>
 <script setup lang="ts">
@@ -96,7 +73,7 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 const { getUsername } = useUserStore()
 const toast = useToast()
-const { url:imageUrl, isUploading, uploadProgress, upload } = useS3Upload()
+
 
 const getFormatDate = computed(() => {
   const dd = new Date()
@@ -153,7 +130,7 @@ const schema = z.object({
   date: z.string(`Tanggal keberangkatan ${requiredMessage}.`).min(6, 'Tanggal keberangkatan minimal.'),
   noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(4, 'No kendaraan minimal 4 digit. ex: AB1234CD').max(9, 'No kendaraan minimal 8 digit. ex: AB1234CD'),
   muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.'),
-  batch: z.string(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
+  batch: z.number(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
   namaSopir: z.string(`Nama sopir ${requiredMessage}.`).min(3, 'Nama sopir minimal 3 huruf.'),
   dokumen: z.array(fileValidator)
     .refine(
@@ -179,6 +156,7 @@ function mockUpload(job: FormJobs) {
         job.progress += 10
       } else {
         clearInterval(interval)
+        job.done = true
         resolve()
       }
     }, 100)
@@ -187,31 +165,42 @@ function mockUpload(job: FormJobs) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onSubmit(event: FormSubmitEvent<Schema>) {
-  if (!formState.dokumen.length) throw new Error('No file selected')
+  if (!formState.dokumen.length) throw new Error('No file selected');
+
   formState.dokumen.forEach((doc) => {
     jobs.value.push({
       type: doc.type,
       title: 'mengunggah',
       done: false,
-      progress: 0
-    })
-  })
+      progress: 0,
+    });
+  });
+
   const lastJob = {
     type: 'form',
     title: 'menyimpan',
     done: false,
-    progress: 0
-  }
-  modal.open()
-  jobs.value.forEach(async (job,index) => {
+    progress: 0,
+  };
+
+  modal.open();
+
+  for (const [index, job] of jobs.value.entries()) {
     if (job.type.includes('image') || job.type.includes('video')) {
-      job.progress = unref(uploadProgress)
-      await upload(formState.dokumen[index]!)
+      const { uploadProgress, upload } = useS3Upload();
+
+      watch(uploadProgress, (newValue) => {
+        job.progress = newValue;
+      });
+
+      await upload(formState.dokumen[index]!);
+      job.done = true;
     }
-    job.done = true
-  })
-  jobs.value.push(lastJob)
-  await mockUpload(lastJob)
+  }
+
+  jobs.value.push(lastJob);
+  const lastIndex = jobs.value.length - 1;
+  await mockUpload(jobs.value[lastIndex]!);
 }
 
 async function hasLocationAccess (): Promise<boolean> {

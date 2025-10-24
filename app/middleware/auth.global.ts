@@ -6,7 +6,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (to.path !== '/login') {
     const token = useCookie('dpp._token')
     const user = useCookie('dpp._user')
-    console.log({token, user});
     
     if (!token.value && !user.value) {
       toast.add({
