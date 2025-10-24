@@ -1,18 +1,23 @@
 <template>
-  <UModal :dismissible="false" title="Mengirim form" prevent-close>
+  <UModal :dismissible="false" :title="getTitle" description="Upload progress" prevent-close>
     <template #body>
-      <div v-if="!isComplete" class="flex p-4 gap-2">
-        <div v-for="(job, key) in props.jobs" :key="key">
-          <p v-show="job.active">{{ job.title }} {{ job.type }} {{ job.progress }}% dari ({{key+1}}/{{ jobs.length }})</p>
+      <div class="flex flex-col gap-2 pb-4">
+        <div v-for="(job, key) in props.jobs" :key="key" class="flex items-center">
+          <UIcon v-if="job.done" name="i-lucide-check" class="text-green-500 mr-2"/>
+          <UIcon v-else name="i-lucide-loader" class="animate-spin mr-2" />
+          <p>({{key+1}}/{{ jobs.length }}) {{ job.title }} {{ job.type }} {{ job.done ? '100' : job.progress }}%</p>
         </div>
       </div>
-      <div v-else>
+      <div v-if="isAllJobsDone">
         <div class="flex flex-col gap-3">
-          <p class="text-center"> Berhasil menggungah form </p>
           <UButton block @click="handlerClose">Kembali</UButton>
         </div>
       </div>
     </template>
+    <!-- <template #header>
+      <UIcon name="i-lucide-loader" class="animate-spin" />
+      <p>Mohon tunggu</p>
+    </template> -->
 
   </UModal>
 </template>
@@ -20,11 +25,15 @@
 const router = useRouter()
 const emit = defineEmits(['close'])
 const props = defineProps<{
-  jobs: FormJobs[]
+  jobs: FormJobs[],
 }>()
 
-const isComplete = computed(()=> {
-  return props.jobs.every(job => job.progress === 100)
+const isAllJobsDone = computed(()=> {
+  return props.jobs.every(job => job.done)
+})
+const getTitle = computed(() => {
+  if (isAllJobsDone.value) return 'Berhasil menggungah form'
+  return 'Mohon tunggu'
 })
 
 function handlerClose() {

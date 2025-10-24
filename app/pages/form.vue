@@ -64,6 +64,9 @@
           </div>
         </UForm>
       </div>
+      <pre>
+        {{ jobs }}
+      </pre>
     </section>
     <!-- <div  class="flex flex-col justify-center p-4 gap-4">
       <a
@@ -93,7 +96,8 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
 const { getUsername } = useUserStore()
 const toast = useToast()
-// import { useS3Upload } from '~/composables/useS3Upload';
+const { url:imageUrl, isUploading, uploadProgress, upload } = useS3Upload()
+
 const getFormatDate = computed(() => {
   const dd = new Date()
   const day = String(dd.getDate()).padStart(2, '0')
@@ -104,21 +108,11 @@ const getFormatDate = computed(() => {
   return `${year}-${month}-${day} ${hours}:${minutes}`
 })
 
-const jobs = ref<FormJobs[]>([
-  {
-    title: 'mengecek',
-    type: 'form',
-    progress: 0,
-    active: true,
-  }
-])
-
+const jobs = ref<FormJobs[]>([])
 const overlay = useOverlay()
 
 const modal = overlay.create(ModalFormLoader, {
-  props: {
-    jobs: jobs.value
-  },
+  props: { jobs: jobs.value },
   destroyOnClose: true
 })
 
@@ -135,7 +129,7 @@ const getCoordinates = computed(() => {
 })
 
 const uploadHint = 'PNG or JPG (max. 5MB per file), Minimal 1 foto'
-const { url:imageUrl, isUploading, uploadProgress, upload } = useS3Upload()
+
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/quicktime"];
@@ -194,23 +188,30 @@ function mockUpload(job: FormJobs) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onSubmit(event: FormSubmitEvent<Schema>) {
   if (!formState.dokumen.length) throw new Error('No file selected')
-  formState.dokumen.forEach(async (doc) => {
+  formState.dokumen.forEach((doc) => {
     jobs.value.push({
       type: doc.type,
       title: 'mengunggah',
-      active: false,
+      done: false,
       progress: 0
     })
   })
-  modal.open()
-  for (let i = 0; i < jobs.value.length; i++) {
-    const job = jobs.value[i]
-    if (job) {
-      job.active = true
-      await mockUpload(job)
-      job.active = false
-    }
+  const lastJob = {
+    type: 'form',
+    title: 'menyimpan',
+    done: false,
+    progress: 0
   }
+  modal.open()
+  jobs.value.forEach(async (job,index) => {
+    if (job.type.includes('image') || job.type.includes('video')) {
+      job.progress = unref(uploadProgress)
+      await upload(formState.dokumen[index]!)
+    }
+    job.done = true
+  })
+  jobs.value.push(lastJob)
+  await mockUpload(lastJob)
 }
 
 async function hasLocationAccess (): Promise<boolean> {

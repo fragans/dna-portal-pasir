@@ -20,9 +20,13 @@ export function useS3Upload() {
   const url = ref('')
   const ongoingUpload = useLocalStorage('ongoingUpload', undefined)
   const uploadObject = ref()
-  const VITE_AWS_BUCKET_NAME = 'dna-portal-pasir-silika'
-  const VITE_WASABI_ACCESS_KEY_ID = 'IFGBWYV0LJNCBYZAVTWX'
-  const VITE_WASABI_SECRET_ACCESS_KEY = 'Ba5bO5hdgHTBhinENaWyId6ebpyZAn44dsD4K8Ov'
+  // const VITE_AWS_BUCKET_NAME = 'dna-portal-pasir-silika'
+  // const VITE_WASABI_ACCESS_KEY_ID = 'IFGBWYV0LJNCBYZAVTWX'
+  // const VITE_WASABI_SECRET_ACCESS_KEY = 'Ba5bO5hdgHTBhinENaWyId6ebpyZAn44dsD4K8Ov'
+  // const VITE_WASABI_REGION = 'ap-southeast-1'
+  const VITE_AWS_BUCKET_NAME = 'portal-bayur-jaya-v1'
+  const VITE_WASABI_ACCESS_KEY_ID = 'B2MREYBZV8NQ1KX1S7N0'
+  const VITE_WASABI_SECRET_ACCESS_KEY = 'Oqiho03Ecle1Gsr1oQnehzqheQSw45l2r5JzdU8s'
   const VITE_WASABI_REGION = 'ap-southeast-1'
 
   const createClient =  () => {
@@ -90,6 +94,7 @@ export function useS3Upload() {
       Filename: filename
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getPresignedUrl = async (key: string) => {
     const client = createClient();
     const command = new GetObjectCommand({
@@ -100,9 +105,10 @@ export function useS3Upload() {
     return await getSignedUrl(client, command, { expiresIn: 3600 });
   }
 
-  const upload = async (file:File) => {
+  async function upload (file:File) {
     removeUploadFlag()
     const objectParams = generateUploadParams(file)
+    console.log(objectParams)
     fileObject.value = file
     uploadParams.value = objectParams
     isUploading.value = true
@@ -121,11 +127,16 @@ export function useS3Upload() {
       })
   
       await uploadObject.value.done()
-  
+      console.log(uploadObject.value.isMultiPart, 'multipart?');
+      
       if (!uploadObject.value.isMultiPart) {
+        // const presignedUrl = await getPresignedUrl(objectParams.Key);
+        // url.value = presignedUrl
         console.log({uploadObject});
-        const presignedUrl = await getPresignedUrl(objectParams.Key);
-        url.value = presignedUrl
+        
+        url.value = uploadObject.value.singleUploadResult.Location
+        console.log(url.value);
+        
       }else {
         const result = await completeMultipartUpload(
           uploadObject.value.uploadedParts,
