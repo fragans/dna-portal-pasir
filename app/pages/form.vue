@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!-- eslint-disable vue/valid-v-slot -->
     <section class="max-w-3xl mx-auto my-8">
       <div class="flex gap-4 flex-col md:flex-row">
         <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 p-4 md:p-0 w-full" @submit="onSubmit">
@@ -45,24 +46,68 @@
           <UFormField name="dokumen" label="Video/Foto">
             <UFileUpload
               v-model="formState.dokumen"
+              :interactive="false"
               class="w-full"
               :description="uploadHint"
               multiple
-              accept="image/*, video/*" 
-            />
+              accept="image/*, video/*"
+              @change="onFileChange"
+            >
+              <template #default="{removeFile, open}">
+                <div class="">
+                  <div class="flex  w-full min-h-[200px] border border-gray-600 border-dashed rounded-lg p-4 justify-center">
+                    <div v-if="formState.dokumen.length === 0" class="w-full min-h-[200px] items-center justify-center flex" @click="open()">
+                      <UIcon name="i-lucide-cloud-upload" class="text-4xl text-gray-500" />
+                    </div>
+                    <div v-else class="w-full flex flex-wrap items-center gap-5">
+                      <div v-for="(file, key) in formState.dokumen" :key="key" class="relative rounded-lg border border-primary">
+                        <template v-if="uploadDone">
+                          <UButton
+                            variant="solid"
+                            color="error"
+                            size="xs"
+                            class="p-1 rounded-full absolute -top-2 -right-2 z-10"
+                            @click="removeFile(key); removeUploadedfile(key)"
+                          >
+                            <UIcon name="i-lucide-x" class="text-white size-4"/>
+                          </UButton>
+                        </template>
+                        <div class="relative">
+
+                          <img :src="createObjectUrl(file)" class="w-20 h-20 object-cover rounded-lg">
+                          <div v-if="!uploadDone" class="w-full absolute inset-0 flex items-center justify-center bg-black/75 rounded-lg">
+                            <UIcon name="i-lucide-loader" class="text-white size-5 animate-spin"/>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="flex justify-end w-20 h-20 border-dashed border-gray-600">
+                        <UButton variant="outline" block @click="open()">
+                          <UIcon name="i-lucide-plus" class="text-4xl text-gray-500" />
+                        </UButton>
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+                
+              </template>
+            </UFileUpload>
           </UFormField>
 
           
           <div class="p-4 text-sm text-gray-500">
-            <UButton block type="submit">
-              Submit
+            <UButton block type="submit" :disabled="!uploadDone">
+              Kirim
             </UButton>
+          </div>
+          <div>
+            <div v-for="(url,key) in imgUrls" :key="key" class="py-2">
+              <p>{{ url.fileKey }}</p>
+              <a :href="url.url" class="line-clamp-1">{{ url.url }}</a>
+            </div>
           </div>
         </UForm>
       </div>
-      <pre>
-        {{ jobs }}
-      </pre>
     </section>
   </div>
 </template>
@@ -71,6 +116,7 @@ import { useUserStore } from '~/stores/user'
 import ModalFormLoader from '~/components/modal/FormLoader.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import * as z from 'zod'
+
 const { getUsername } = useUserStore()
 const toast = useToast()
 
@@ -93,6 +139,28 @@ const modal = overlay.create(ModalFormLoader, {
   destroyOnClose: true
 })
 
+interface UploadedFile {
+  fileKey: string
+  url: string
+}
+const imgUrls = ref<UploadedFile[]>([])
+const uploadDone = computed(() => {
+  const hasUncomplete = imgUrls.value.some((file) => {
+    if (!file.url) return true
+  })
+
+  if (hasUncomplete) return false
+  return true
+})
+
+function removeUploadedfile (index: number) {
+  imgUrls.value.splice(index, 1)
+}
+
+function createObjectUrl (file: File): string {
+  if (file.type.startsWith('video')) return 'https://placehold.co/100/000000/FFFFFF/webp?text=%3E'
+  return URL.createObjectURL(file)
+}
 
 const getCoordinates = computed(() => {
   if (navigator.geolocation) {
@@ -127,7 +195,8 @@ const fileValidator = z.instanceof(File, { message: `Image ${requiredMessage}.` 
     .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 20MB.`)
     .refine( (file) => ACCEPTED_DOC_TYPES.includes(file.type), "Only .jpg, .jpeg, .png, .webp, .mp4, and .mov formats are supported." )
 const schema = z.object({
-  date: z.string(`Tanggal keberangkatan ${requiredMessage}.`).min(6, 'Tanggal keberangkatan minimal.'),
+  date: z.string(`Tanggal keberangkatan ${requiredMessage}.`),
+  location: z.string(`Lokasi keberangkatan ${requiredMessage}.`),
   noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(4, 'No kendaraan minimal 4 digit. ex: AB1234CD').max(9, 'No kendaraan minimal 8 digit. ex: AB1234CD'),
   muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.'),
   batch: z.number(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
@@ -164,18 +233,41 @@ function mockUpload(job: FormJobs) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function onSubmit(event: FormSubmitEvent<Schema>) {
-  if (!formState.dokumen.length) throw new Error('No file selected');
+async function onFileChange(event: Event) {
+  console.log({event});
+  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  formState.dokumen.forEach( async (doc) => {  
+    const fileKey = `${doc.type}/${doc.name}`
 
-  formState.dokumen.forEach((doc) => {
-    jobs.value.push({
-      type: doc.type,
-      title: 'mengunggah',
-      done: false,
-      progress: 0,
-    });
+    const isDuplicate = imgUrls.value.some((url) => url.fileKey === fileKey)
+    if (!isDuplicate) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { uploadProgress, upload, url } = useS3Upload();
+      const progress = ref(0);
+      watch(uploadProgress, (newValue) => {
+        progress.value = newValue;
+      })
+      console.log('upload');
+      
+      // await upload(doc);
+      imgUrls.value.push({url:url.value, fileKey})
+    }
+    
+
   });
-
+  
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function onSubmit(event: FormSubmitEvent<Schema>) {
+  if (!uploadDone.value) {
+    toast.add({
+      title: 'Gagal Upload',
+      description: 'File belum selesai diupload',
+      icon: 'i-lucide-alert-circle',
+    })
+    return
+  }
   const lastJob = {
     type: 'form',
     title: 'menyimpan',
@@ -184,19 +276,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   };
 
   modal.open();
-
-  for (const [index, job] of jobs.value.entries()) {
-    if (job.type.includes('image') || job.type.includes('video')) {
-      const { uploadProgress, upload } = useS3Upload();
-
-      watch(uploadProgress, (newValue) => {
-        job.progress = newValue;
-      });
-
-      await upload(formState.dokumen[index]!);
-      job.done = true;
-    }
-  }
 
   jobs.value.push(lastJob);
   const lastIndex = jobs.value.length - 1;

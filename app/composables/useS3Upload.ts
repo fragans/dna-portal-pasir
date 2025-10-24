@@ -4,7 +4,6 @@ import type { CompletedPart, S3ClientConfig } from "@aws-sdk/client-s3"
 import { Upload } from '@aws-sdk/lib-storage'
 import type { Progress } from '@aws-sdk/lib-storage'
 
-import { ref, onMounted } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 /**
  * https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/client/s3/
@@ -12,10 +11,14 @@ import { useLocalStorage } from '@vueuse/core'
 
 export function useS3Upload() {
   const toast = useToast()
+  const fileKey = ref('')
   const isUploading = ref(false)
   const fileObject = ref<File| undefined>()
   const uploadParams = ref({})
+  const isUploadDone = ref(false)
   const uploadProgress = ref(0)
+  const uploadProgressLoaded = ref(0)
+  const uploadProgressTotal = ref(0)
   const uploadResponse = ref(null)
   const url = ref('')
   const ongoingUpload = useLocalStorage('ongoingUpload', undefined)
@@ -86,6 +89,7 @@ export function useS3Upload() {
     const filename = `${unixTimestamp}-${encodedName}`
 
     const Key = `${folderName}/${filename}`
+    fileKey.value = Key
     return {
       Bucket: VITE_AWS_BUCKET_NAME,
       Key,
@@ -123,11 +127,13 @@ export function useS3Upload() {
       uploadObject.value.on("httpUploadProgress", (progress:Progress) => {
         createUploadFlag()
         if (!progress.total || !progress.loaded) return
+        uploadProgressLoaded.value = progress.loaded
+        uploadProgressTotal.value = progress.total
         uploadProgress.value = Math.round(progress.loaded / progress.total * 100)
       })
   
       await uploadObject.value.done()
-      console.log(uploadObject.value.isMultiPart, 'multipart?');
+      
       
       if (!uploadObject.value.isMultiPart) {
         // const presignedUrl = await getPresignedUrl(objectParams.Key);
@@ -146,6 +152,7 @@ export function useS3Upload() {
         url.value = result.Location!
       }
       uploadResponse.value = uploadObject.value
+      isUploadDone.value = true
       isUploading.value = false
       finishUploadFlag()
     } catch (error: Error | unknown) {
@@ -221,6 +228,7 @@ export function useS3Upload() {
     localStorage.removeItem('ongoingUpload')
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const abortUploadReminder = async () => {
     // localStorage null handler
     if (!ongoingUpload.value || ongoingUpload.value === 'undefined' ) {return}
@@ -231,8 +239,17 @@ export function useS3Upload() {
     }
   }
 
-  onMounted(async () => {
-    await abortUploadReminder()
-  })
-  return { isUploading, uploadProgress, upload, url , file:fileObject, ongoingUpload}
+  // onMounted(async () => {
+    // await abortUploadReminder()
+  // })
+  return {
+    isUploading,
+    uploadProgress,
+    upload,
+    url,
+    file:fileObject,
+    ongoingUpload,
+    isUploadDone,
+    fileKey,
+  }
 }
