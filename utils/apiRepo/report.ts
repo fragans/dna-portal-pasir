@@ -7,6 +7,7 @@ export function insertDocument(payload: ReportDocument) {
   const res = await $fetch<ResponseInsertReport>(url, {
       method: 'POST',
       headers: {
+        Authorization: `Bearer ${useCookie('dpp._token').value}`,
         'Content-Type': 'application/json'
       },
       body: { ...payload}

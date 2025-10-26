@@ -40,9 +40,10 @@ const columns: TableColumn<GetReport>[] = [
     }
   },
   {
-    accessorKey: 'createdBy',
-    header: 'createdBy'
+    accessorKey: 'driverName',
+    header: 'Supir'
   },
+  // driverName
   {
     accessorKey: 'loadAmount',
     header: 'Amount',

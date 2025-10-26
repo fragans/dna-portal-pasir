@@ -282,7 +282,7 @@ async function onFileChange(event: Event) {
       })
       console.log('upload');
       
-      // await upload(doc);
+      await upload(doc);
       imgUrls.value.push({
         url:url.value,
         fileKey,
@@ -311,7 +311,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     progress: 0,
   };
 
-  modal.open();
   const documents = imgUrls.value.map((doc) => doc.url)
   const generatedPayload: ReportDocument = {
     masterUserID: getUsername,
@@ -336,6 +335,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       })
       return
     }
+    modal.open();
     jobs.value.push(lastJob);
     const lastIndex = jobs.value.length - 1;
     await mockUpload(jobs.value[lastIndex]!);
