@@ -130,14 +130,16 @@
 <script setup lang="ts">
 import { useGeolocation } from '@vueuse/core'
 import { useUserStore } from '~/stores/user'
+import { insertDocument } from '~~/utils/apiRepo/report'
 import ModalFormLoader from '~/components/modal/FormLoader.vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { UButton } from '#components'
 import * as z from 'zod'
 
+
 const { getUsername } = useUserStore()
 const toast = useToast()
-const { coords, locatedAt, error, resume, pause } = useGeolocation()
+const {  resume } = useGeolocation()
 
 const isGrantedLocation = ref(false)
 const removeFileButtonRef = ref<typeof UButton[] | null>(null)
@@ -171,7 +173,7 @@ interface UploadedFile {
 // url default value is ''
 const imgUrls = ref<UploadedFile[]>([])
 
-const uploadDone = computed(() => {
+const uploadDone = computed<undefined|boolean>(() => {
   const hasUncomplete = imgUrls.value.find((img)=> img.url === '')
   console.log({hasUncomplete});
   
@@ -208,12 +210,12 @@ const ACCEPTED_DOC_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
 const formState = reactive({
   date: '',
   location: '',
-  namaSopir: undefined,
+  namaSopir: '',
   dokumen: [] as File[],
-  noSupir: undefined,
-  batch: undefined,
-  muatan: undefined,
-  keterangan: undefined,
+  noSupir: '',
+  batch: 0,
+  muatan: 0,
+  keterangan: '',
 })
 // validator
 const requiredMessage = 'harus diisi'
@@ -310,10 +312,43 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   };
 
   modal.open();
-
-  jobs.value.push(lastJob);
-  const lastIndex = jobs.value.length - 1;
-  await mockUpload(jobs.value[lastIndex]!);
+  const documents = imgUrls.value.map((doc) => doc.url)
+  const generatedPayload: ReportDocument = {
+    masterUserID: getUsername,
+    tanggal: formState.date,
+    lokasi: formState.location,
+    batch: formState.batch!.toString(),
+    muatan: formState.muatan,
+    namaSupir: formState.namaSopir,
+    noSupir: formState.noSupir,
+    keterangan: formState.keterangan,
+    documents
+  }
+  try {
+    const { execute:executeInsertDocument, status } = await insertDocument(generatedPayload)
+    await executeInsertDocument()
+    if (status.value === 'error') {
+      toast.add({
+        title: 'Gagal menyimpan',
+        description: 'Periksa kembali formulir anda',
+        icon: 'i-lucide-alert-circle',
+        color: 'error',
+      })
+      return
+    }
+    jobs.value.push(lastJob);
+    const lastIndex = jobs.value.length - 1;
+    await mockUpload(jobs.value[lastIndex]!);
+  } catch (error) {
+    console.log(error);
+    toast.add({
+      title: 'Gagal menyimpan',
+      description: 'Periksa kembali formulir anda',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  } 
+  
 }
 
 async function hasLocationAccess (): Promise<boolean> {

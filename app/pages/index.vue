@@ -13,7 +13,7 @@
             <UIcon name="i-lucide-file-plus" class="mx-auto mb-2" size="48" />
           </UCard>
         </NuxtLink>
-        <NuxtLink to="/form">
+        <NuxtLink to="/document">
           <UCard>
             <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
           </UCard>
