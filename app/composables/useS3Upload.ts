@@ -112,7 +112,6 @@ export function useS3Upload() {
   async function upload (file:File) {
     removeUploadFlag()
     const objectParams = generateUploadParams(file)
-    console.log(objectParams)
     fileObject.value = file
     uploadParams.value = objectParams
     isUploading.value = true
@@ -243,6 +242,7 @@ export function useS3Upload() {
     // await abortUploadReminder()
   // })
   return {
+    getPresignedUrl,
     isUploading,
     uploadProgress,
     upload,
