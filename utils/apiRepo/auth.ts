@@ -6,18 +6,18 @@ interface LoginForm {
 }
 export function loginUser(payload: LoginForm) {
   // https://dummyjson.com/docs/auth
-  const loginUrl = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/login'
+  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const route = '/login'
+  const url = `${host}${route}`
   const fetchKey = computed(() => `login-${new Date().getTime()}`)
   return useAsyncData(fetchKey, async () => {
-  const res = await $fetch<LoginResponse>(loginUrl, {
+  const res = await $fetch<LoginResponse>(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: {
         email: payload.email,
         password: payload.password,
-      }
+      },
+      responseType: 'json'
     })
     return res
   },
@@ -27,15 +27,17 @@ export function loginUser(payload: LoginForm) {
 }
 
 
-export function getProfile(token:string) {
-  const profileUrl = 'https://dummyjson.com/auth/me'
+export function getProfileById(id:string) {
+  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const route = `detail-profile?masterUserID=${id}`
+  const url = `${host}/${route}`
   return useAsyncData('user-profile', async () => {
-    const res = await $fetch(profileUrl, {
+    const res = await $fetch(url, {
       method: 'GET',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${useCookie('dpp._token').value}`
+      },
+      responseType: 'json'
     })
     return res
   },

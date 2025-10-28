@@ -23,12 +23,13 @@ export function getReports(){
   const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/list-data'
   const fetchKey = computed(() => `show-${new Date().getTime()}`)
   return useAsyncData(fetchKey, async () => {
-  const res = await $fetch<string>(url, {
+  const res = await $fetch<ResponseGetReports>(url, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${useCookie('dpp._token').value}`,
         'Content-Type': 'application/json'
-      }
+      },
+      responseType: 'json'
     })
     return res
   },

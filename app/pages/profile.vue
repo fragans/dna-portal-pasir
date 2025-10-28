@@ -27,9 +27,12 @@
 
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user';
-// import { getProfile } from '~~/utils/apiRepo/auth';
+import { getProfileById } from '~~/utils/apiRepo/auth';
 
 const userStore = useUserStore()
 const { getFirstName, getUserAvatar, getLastName, getUsername, getUserProfile} = storeToRefs(userStore)
+const { data, execute } = await getProfileById(getUsername.value)
+await execute()
+console.log(data.value);
 
 </script>

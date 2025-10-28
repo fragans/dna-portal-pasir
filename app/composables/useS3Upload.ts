@@ -32,6 +32,16 @@ export function useS3Upload() {
   const VITE_WASABI_SECRET_ACCESS_KEY = 'Oqiho03Ecle1Gsr1oQnehzqheQSw45l2r5JzdU8s'
   const VITE_WASABI_REGION = 'ap-southeast-1'
 
+  const generateKeyFromUrl = (url: string) => {
+    const marker = 'portal-bayur-jaya-v1/';
+    const idx = url.indexOf(marker);
+    if (idx === -1) return '';
+    // Get everything after "portal-bayur-jaya-v1/"
+    const key = url.slice(idx + marker.length);
+    // DO NOT encode this again
+    return key.split('?')[0]; // strip query params if any
+  }
+
   const createClient =  () => {
     // const Bucket = 'dna-portal-pasir-silika'
 
@@ -99,11 +109,27 @@ export function useS3Upload() {
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const getPresignedUrl = async (key: string) => {
+  const getPresignedUrl = async (url: string) => {
+    console.log({url});
+    // url = "https://s3.ap-southeast-1.wasabisys.com/portal-bayur-jaya-v1/image/1761488700549-Screenshot%25202025-09-11%2520at%252016.07.38.png"
+    const Key = generateKeyFromUrl(decodeURIComponent(url))
+    // extracted = "image/1761488700549-Screenshot%25202025-09-11%2520at%252016.07.38.png"
     const client = createClient();
     const command = new GetObjectCommand({
       Bucket: VITE_AWS_BUCKET_NAME,
-      Key: key,
+      Key,
+    });
+    // The URL will be valid for 1 hour
+    // ex: https://s3.ap-southeast-1.wasabisys.com/portal-bayur-jaya-v1/image/1761650717085-Screenshot%25202025-09-15%2520at%252021.59.42.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=B2MREYBZV8NQ1KX1S7N0%2F20251028%2Fap-southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20251028T112517Z&X-Amz-Expires=3600&X-Amz-Signature=0fc4ba81e56e2c6ca62593108f398a3264be23902346786cdd6698731c472077&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject
+    return await getSignedUrl(client, command, { expiresIn: 3600 });
+  }
+
+  const getPresignedUrlByKey = async (Key: string) => {
+    
+    const client = createClient();
+    const command = new GetObjectCommand({
+      Bucket: VITE_AWS_BUCKET_NAME,
+      Key,
     });
     // The URL will be valid for 1 hour
     return await getSignedUrl(client, command, { expiresIn: 3600 });
@@ -116,6 +142,8 @@ export function useS3Upload() {
     uploadParams.value = objectParams
     isUploading.value = true
     try {
+      console.log({objectParams});
+      // ex: "image/1761650509414-Screenshot%202025-09-15%20at%2020.28.54.png"
       const client = createClient()
       // from : https://stackoverflow.com/a/73583538
       uploadObject.value = new Upload({
@@ -135,9 +163,10 @@ export function useS3Upload() {
       
       
       if (!uploadObject.value.isMultiPart) {
-        // const presignedUrl = await getPresignedUrl(objectParams.Key);
-        // url.value = presignedUrl
-        console.log({uploadObject});
+        const presignedUrl = await getPresignedUrlByKey(objectParams.Key);
+        console.log({presignedUrl});
+        
+        // console.log({uploadObject});
         
         url.value = uploadObject.value.singleUploadResult.Location
         console.log(url.value);

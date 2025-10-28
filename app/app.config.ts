@@ -4,7 +4,7 @@ export default defineAppConfig({
     duration: 5000
   },
   ui: {
-    colorMode: 'dark' as const,
+    colorMode: 'light',
     input: {
       slots: {
         root: 'w-full',

@@ -11,3 +11,14 @@
  -lokasi
  -waktu
  -tanggal
+
+
+filter#get list data: 
+- by specific userid 
+- all userid 
+- by a single date(not date range) 
+
+get all user
+fetch all user & admin for admin view page
+
+light mode

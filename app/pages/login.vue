@@ -69,8 +69,9 @@ const schema = z.object({
 type Schema = z.output<typeof schema>
 
 const { data, execute, status } = loginUser(formState)
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onSubmit(event: FormSubmitEvent<Schema>) { 
-  console.log('onSubmit', event);
   await execute()
   
   if (status.value === 'success' && data.value) {

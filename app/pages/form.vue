@@ -4,7 +4,7 @@
     <section class="max-w-3xl mx-auto my-8">
       <div class="flex gap-4 flex-col md:flex-row">
         <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 p-4 md:p-0 w-full" @submit="onSubmit">
-          <UAccordion :items="[{ label:  getUsername , icon: 'i-lucide-swatch-book' }]" class="opacity-50">
+          <UAccordion :items="[{ label:  getUsername , icon: 'i-lucide-user' }]" class="opacity-50">
             <template #content>
               <div class="grid grid-cols-2 gap-4">
                 <UFormField name="date">
@@ -117,6 +117,7 @@
     </section>
     <UModal :open="!isGrantedLocation" title="Akses Lokasi" description="Ijinkan akses lokasi untuk melanjutkan">
       <template #footer>
+        
         <UButton
           :block="true"
           @click="resume()"
@@ -139,7 +140,7 @@ import * as z from 'zod'
 
 const { getUsername } = useUserStore()
 const toast = useToast()
-const {  resume } = useGeolocation()
+const { resume } = useGeolocation()
 
 const isGrantedLocation = ref(false)
 const removeFileButtonRef = ref<typeof UButton[] | null>(null)

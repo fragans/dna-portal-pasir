@@ -2,8 +2,10 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default defineNuxtRouteMiddleware(async (to, from) => {
   const toast = useToast()
-
+  
   if (to.path !== '/login') {
+    console.log('guarded route');
+    
     const token = useCookie('dpp._token')
     const user = useCookie('dpp._user')
     
@@ -14,5 +16,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       })
       return navigateTo('/login')
     }
+  }else {
+    navigateTo(to)
   }
 })

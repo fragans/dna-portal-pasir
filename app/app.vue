@@ -3,17 +3,31 @@
     <UHeader toggle-side="left" mode="slideover">
       <UNavigationMenu v-if="showCrumbs" :items="items" />
 
+      
       <template #title>
         dna-portal-pasir
       </template>
 
-      <template v-if="isLogin" #right >
-        <UAvatar :src="getUserAvatar"/>
-        {{ getDisplayRole }}
+      <template #right >
+        <UseColorMode v-slot="color">
+          <UButton
+            variant="link"
+            @click="color.mode = color.mode === 'dark' ? 'light' : 'dark'"
+          >
+            <UIcon v-if="color.mode === 'light'" name="i-lucide-sun" class="text-2xl text-gray-500" />
+            <UIcon v-else name="i-lucide-moon" class="text-2xl" />
+          </UButton>
+        </UseColorMode>
+        <div v-if="isLogin">
+          <UAvatar :src="getUserAvatar"/>
+          {{ getDisplayRole }}
+        </div>
+        
       </template>
 
       <template #body>
         <UNavigationMenu  :items="items" orientation="vertical" class="-mx-2.5" />
+        
       </template>
       
     </UHeader>
@@ -25,6 +39,7 @@
   </UApp>
 </template>
 <script setup lang="ts">
+import { UseColorMode } from '@vueuse/components'
 import type { NavigationMenuItem } from '@nuxt/ui'
 import { useUserStore } from '~/stores/user';
 
