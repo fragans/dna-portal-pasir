@@ -38,9 +38,6 @@
       <div v-else class="text-center">
         <UButton to="/logout" size="xl">Logout?</UButton>
       </div>
-      <div class="fixed bottom-2 right-2 text-xs text-gray-400">
-        <a href="https://dummyjson.com/users" target="_blank">cheat</a>
-      </div>
     </div>
   </div>
 </template>
@@ -72,23 +69,32 @@ const { data, execute, status } = loginUser(formState)
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onSubmit(event: FormSubmitEvent<Schema>) { 
-  await execute()
+  try {
+    await execute()
   
-  if (status.value === 'success' && data.value) {
-    console.log('login success', data.value);
-    
-    userStore.setTokenCookie(data.value.token)
-    // useCookie('dpp._token_refresh').value = data.value.refreshToken
-    
-    userStore.setUserCookie(data.value.data)
-    await useRouter().push('/')
-  } else {
+    if (status.value === 'success' && data.value) {
+      console.log('login success');
+      
+      userStore.setTokenCookie(data.value.token)
+      userStore.setUserCookie(data.value.data)
+
+      await useRouter().push('/')
+    } else {
+      toast.add({
+        title: 'Gagal Login',
+        description: 'Periksa kembali email dan password anda',
+        icon: 'i-lucide-alert-circle',
+      })
+    }  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
     toast.add({
       title: 'Gagal Login',
       description: 'Periksa kembali email dan password anda',
       icon: 'i-lucide-alert-circle',
     })
   }
+  
 }
 
 </script>

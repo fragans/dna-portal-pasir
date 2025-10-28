@@ -1,18 +1,19 @@
 <template>
-  <div>
-    <UCard>
-      logouting...
-    </UCard>
-  </div>
+  <div />
 </template>
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user';
+const toast = useToast()
 const userStore = useUserStore()
 
+toast.add({
+  title: 'Logout',
+  description: 'Anda telah keluar',
+  icon: 'i-lucide-alert-circle',
+})
 onMounted(() => {
-  setInterval(() => {
-    userStore.logoutUser()
-    useRouter().push('/login')
-  }, 1500)
+  userStore.logoutUser()
+  useRouter().push('/login')
+  
 })
 </script>

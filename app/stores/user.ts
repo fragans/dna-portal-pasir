@@ -1,6 +1,6 @@
 export const useUserStore = defineStore('user', () => {
-  const userCookie = useCookie<UserData>('dpp._user')
-  const tokenCookie = useCookie<string>('dpp._token')
+  const userCookie = useCookie<UserData|null>('dpp._user')
+  const tokenCookie = useCookie<string|null>('dpp._token')
   // const userProfile = ref<UserData>()
   
   function setUserCookie(user: UserData) {
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', () => {
   })
 
   const isLogin = computed<boolean>(() => {
-    return !!userCookie.value
+    return !!tokenCookie.value
   })
   const getToken = computed(() => {
     return tokenCookie.value || ''
@@ -52,8 +52,8 @@ export const useUserStore = defineStore('user', () => {
   })
 
   function logoutUser() {
-    useCookie('dpp._token').value = null
-    useCookie('dpp._user').value = null
+    tokenCookie.value = null
+    userCookie.value = null
   }
 
   

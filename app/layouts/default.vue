@@ -6,7 +6,6 @@
 </template>
 <script setup lang="ts">
 import type { BreadcrumbItem } from '@nuxt/ui'
-
 const route =useRoute()
 
 const showCrumbs = computed(() => route.name !== 'index' && route.name !== 'login' && route.name !== 'logout')
