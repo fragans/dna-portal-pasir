@@ -1,29 +1,32 @@
 <template>
   <div>
     <section class="max-w-3xl mx-auto my-8">
-      <UTable :data="reportsData.data" :columns="columns"  class="flex-1">
-        <template #expanded="{ row }">
-          <div class="flex gap-2 justify-center">
-            <div
-              v-for="(item, key) in row.original.documents"
-              :key="key"
-            >
-              
-              <UButton
-                size="xl"
-                class="max-w-md"
-                @click="generateImageUrl(item.link)"
+      <template v-if="status==='success' && reportsData">
+        <UTable :data="reportsData.data" :columns="columns"  class="flex-1">
+          <template #expanded="{ row }">
+            <div class="flex gap-2 flex-col justify-center">
+              <div
+                v-for="(item, key) in row.original.documents"
+                :key="key"
               >
-               <span>{{ key + 1 }}.</span>
-                <span class="line-clamp-1 text-xs">
-                  {{ item.link }}
-                </span>
-                <UIcon name="i-lucide-square-arrow-out-up-right" class="size-8"/>
-              </UButton>
+                
+                <UButton
+                  size="xl"
+                  class="max-w-md"
+                  variant="subtle"
+                  @click="generateImageUrl(item.link)"
+                >
+                 <span>{{ key + 1 }}.</span>
+                  <span class="line-clamp-1 text-xs">
+                    {{ item.link }}
+                  </span>
+                  <UIcon name="i-lucide-square-arrow-out-up-right" class="size-4"/>
+                </UButton>
+              </div>
             </div>
-          </div>
-        </template>
-      </UTable>
+          </template>
+        </UTable>
+      </template>
     </section>
 
     <UModal :open="isError" title="Gagal memuat data">

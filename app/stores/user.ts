@@ -19,8 +19,18 @@ export const useUserStore = defineStore('user', () => {
     return `https://placehold.co/600x400/orange/white?text=${getInitialName.value}`
   })
 
+  function generateUserAvatar (fullname: string| undefined) {
+    if (!fullname) return `https://placehold.co/600x400/orange/white?text=A`
+    const initial = generateInitial(fullname)
+    return `https://placehold.co/600x400/orange/white?text=${initial}`
+  }
+
   const getInitialName = computed(() => {
     const fullname = userCookie.value?.fullname || 'User'
+    const initial = generateInitial(fullname)
+    return initial 
+  })
+  function generateInitial (fullname:string) {
     const names = fullname.split(' ')
     if (names.length === 0) return 'U'
     let initials = ''
@@ -28,7 +38,7 @@ export const useUserStore = defineStore('user', () => {
       initials = initials + word.charAt(0).toUpperCase()
     });
     return initials
-  })
+  }
 
   const getUsername = computed(() => {
     return userCookie.value?.masterUserID || ''
@@ -59,6 +69,7 @@ export const useUserStore = defineStore('user', () => {
   
 
   return {
+    generateUserAvatar,
     setTokenCookie,
     setUserCookie,
     logoutUser,

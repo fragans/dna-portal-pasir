@@ -59,7 +59,7 @@ const formState = reactive({
 })
 
 const schema = z.object({
-  password: z.string('Password tidak boleh kosong').min(5, "Password minimal 6 karakter"),
+  password: z.string('Password tidak boleh kosong').min(4, "Password minimal 4 karakter"),
   email: z.string('Email tidak boleh kosong').min(5, "Email minimal 6 karakter"),
   // email: z.string('Email tidak boleh kosong').email(6, "Email tidak valid"),,
 });
