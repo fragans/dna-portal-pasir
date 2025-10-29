@@ -115,21 +115,9 @@
         </UForm>
       </div>
     </section>
-    <UModal :open="!isGrantedLocation" title="Akses Lokasi" description="Ijinkan akses lokasi untuk melanjutkan">
-      <template #footer>
-        
-        <UButton
-          :block="true"
-          @click="resume()"
-        >
-          Ijinkan Akses Lokasi
-        </UButton>
-      </template>
-    </UModal>
   </div>
 </template>
 <script setup lang="ts">
-import { useGeolocation } from '@vueuse/core'
 import { useUserStore } from '~/stores/user'
 import { insertDocument } from '~~/utils/apiRepo/report'
 import ModalFormLoader from '~/components/modal/FormLoader.vue'
@@ -140,7 +128,6 @@ import * as z from 'zod'
 
 const { getUsername } = useUserStore()
 const toast = useToast()
-const { resume } = useGeolocation()
 
 const isGrantedLocation = ref(false)
 const removeFileButtonRef = ref<typeof UButton[] | null>(null)
