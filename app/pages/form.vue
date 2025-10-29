@@ -277,10 +277,10 @@ async function onFileChange(event: Event) {
         file:doc
       })
     } else {
-      await nextTick(()=> {
-        console.log(removeFileButtonRef.value);
-        removeFileButtonRef.value![index]!.click()
-      })
+      // await nextTick(()=> {
+      //   console.log(removeFileButtonRef.value);
+      //   removeFileButtonRef.value![index]!.click()
+      // })
       // remove dupe file from State
       
       // slots.default()[0].removeFile(index)
