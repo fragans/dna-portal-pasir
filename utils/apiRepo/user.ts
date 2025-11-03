@@ -27,10 +27,12 @@ export function getUserList() {
       headers: {
         'Authorization': `Bearer ${useCookie('dpp._token').value}`
       },
-      responseType: 'json'
+      responseType: 'json',
     })
     return res
-  })
+  },
+  {immediate: false}
+  )
 }
 
 export function insertUser(payload: InsertUserPayload) {
@@ -44,7 +46,7 @@ export function insertUser(payload: InsertUserPayload) {
       headers: {
         'Authorization': `Bearer ${useCookie('dpp._token').value}`
       },
-      responseType: 'json'
+      responseType: 'json',
     })
     return res
   },

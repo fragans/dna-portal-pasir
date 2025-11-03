@@ -112,7 +112,7 @@ const schema = z.object({
   tempatPenugasan: z.string(`Tempat Penugasan ${requiredMessage}`)
 })
 
-const { data, status, execute } = insertUser(formState)
+const { data, status, execute, error } = insertUser(formState)
 
 function handleSelectDate () {
   calendarOpen.value = false
@@ -142,12 +142,28 @@ async function handleFormSubmit () {
     })
     await useRouter().push('/users')
   } else if (status.value === 'error') {
-    toast.add({
-      title: 'Gagal menambahkan user',
-      description: 'Data user sudah ada atau terjadi kesalahan',
-      icon: 'i-lucide-alert-circle',
-      color: 'error',
-    })
+    if (error.value?.statusCode === 400) {
+      toast.add({
+        title: 'Gagal menambahkan user',
+        description: 'Periksa kembali formulir anda',
+        icon: 'i-lucide-alert-circle',
+        color: 'error',
+      })
+    } else if (error.value?.statusCode === 401) {
+      toast.add({
+        title: 'Gagal menambahkan user',
+        description: 'Anda tidak mempunyai akses untuk menambahkan user',
+        icon: 'i-lucide-alert-circle',
+        color: 'error',
+      })  
+    } else if (error.value?.statusCode === 500) {
+      toast.add({
+        title: 'Gagal menambahkan user',
+        description: 'Data user sudah ada atau terjadi kesalahan',
+        icon: 'i-lucide-alert-circle',
+        color: 'error',
+      })
+    }
   }
 }
 
