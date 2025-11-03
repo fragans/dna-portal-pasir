@@ -262,7 +262,6 @@ async function onFileChange(event: Event) {
     // const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     if (!isUploaded) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { uploadProgress, upload, url } = useS3Upload()
       const progress = ref(0)
       watch(uploadProgress, (newValue) => {

@@ -33,11 +33,11 @@ export function getUserList() {
   })
 }
 
-export function inserUser(payload: InsertUserPayload) {
+export function insertUser(payload: InsertUserPayload) {
   const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
   const route = 'add-user'
   const url = `${host}/${route}`
-  return useAsyncData('user-list', async () => {
+  return useAsyncData('insert-user', async () => {
     const res = await $fetch(url, {
       method: 'POST',
       body: payload,
@@ -47,5 +47,7 @@ export function inserUser(payload: InsertUserPayload) {
       responseType: 'json'
     })
     return res
-  })
+  },
+  {immediate: false}
+)
 }

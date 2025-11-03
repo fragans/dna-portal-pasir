@@ -17,7 +17,9 @@
         <template #header>
           <span>Tempat Tanggal Lahir</span>
           <span class="text-xs text-gray-500 float-right">{{ formState.birthDatePlace }}</span>
-          <UInput v-model="formState.birthDatePlace" size="xl" type="text" class="hidden"/>
+          <UFormField name="birthDatePlace" class="hidden">
+            <UInput v-model="formState.birthDatePlace" size="xl" type="text"/>
+          </UFormField>
         </template>
         <template #default>
           <div class="flex flex-col gap-4">
@@ -49,18 +51,31 @@
           </div>
         </template>
       </UCard>
+      <UFormField name="tempatPenugasan" label="Tempat Penugasan">
+        <UInput v-model="formState.tempatPenugasan" size="xl" />
+      </UFormField>
 
-      <UButton :block="true" color="primary" size="xl" class="text-center">Submit</UButton>
+      <UButton
+        :disabled="status === 'pending'"
+        :block="true"
+        color="primary"
+        size="xl"
+        class="text-center"
+        type="submit"
+      >
+        Submit
+      </UButton>
     </UForm>
   </section>
 </template>
 <script setup lang="ts">
 import * as z from 'zod'
-
+import { insertUser } from '~~/utils/apiRepo/user'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { DateValue } from '@internationalized/date'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createCalendar, getLocalTimeZone, toCalendar, today, CalendarDate } from '@internationalized/date'
+
 
 
 // date-formatter
@@ -68,25 +83,28 @@ const formatter = new Intl.DateTimeFormat('id-ID', { month: 'long' });
 const birthPlace = ref('')
 const calendarValue = shallowRef(new CalendarDate(2022, 1, 10))
 const defaultDate = new CalendarDate(2024, 10, 3)
+const requiredMessage = 'harus diisi'
 
 const calendarOpen = ref(false)
 const formState = reactive<InsertUserPayload>({
-  fullname: '',
-  email: '',
-  phoneNumber: '',
-  address: '',
-  birthDatePlace: '',
-  tempatPenugasan: ''
+  fullname: undefined,
+  email: undefined,
+  phoneNumber: undefined,
+  address: undefined,
+  birthDatePlace: undefined,
+  tempatPenugasan: undefined
 })
 
 const schema = z.object({
-  fullname: z.string(),
-  email: z.email(),
-  phoneNumber: z.string(),
-  address: z.string(),
-  birthPlaceDate: z.string(),
-  tempatPenugasan: z.string()
+  fullname: z.string(`Nama ${requiredMessage}`),
+  email: z.email('Email tidak valid'),
+  phoneNumber: z.string(`Nomor Telepon ${requiredMessage}`),
+  address: z.string(`Alamat ${requiredMessage}`),
+  birthPlaceDate: z.string(`Tempat Tanggal Lahir ${requiredMessage}`),
+  tempatPenugasan: z.string(`Tempat Penugasan ${requiredMessage}`)
 })
+
+const { data, status, execute } = insertUser(formState)
 
 function handleSelectDate () {
   calendarOpen.value = false
@@ -102,8 +120,10 @@ const formattedDate = computed(() => {
   return  calendarValue.value.day + ' ' + formatter.format(calendarValue.value.month) + ' ' + calendarValue.value.year
 })  
 
-function handleFormSubmit () {
-
+async function handleFormSubmit () {
+  await execute()
+  console.log({data});
+  
 }
 
 </script>

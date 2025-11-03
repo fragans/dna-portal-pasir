@@ -23,10 +23,10 @@ interface ResponseUserList {
 }
 
 interface InsertUserPayload {
-  fullname: string
-  email: string
-  phoneNumber: string
-  address: string
-  birthDatePlace: string
-  tempatPenugasan: string
+  fullname: string | undefined
+  email: string | undefined
+  phoneNumber: string | undefined
+  address: string | undefined
+  birthDatePlace: string | undefined
+  tempatPenugasan: string | undefined
 }
