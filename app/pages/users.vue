@@ -3,6 +3,13 @@
     <template v-if="status=== 'success' && userList">
       <UTable :data="userList.data" :columns="columns" />
     </template>
+    <div class="fixed bottom-4 max-w-xl mx-auto w-full">
+      <div class="float-right">
+        <UButton to="/add-user" size="xl">
+          <UIcon name="i-lucide-plus" class="text-2xl" />
+        </UButton>
+      </div>
+    </div>
     <UModal
       v-model:open="openModalProfile"
       :dismissible="true"

@@ -32,3 +32,20 @@ export function getUserList() {
     return res
   })
 }
+
+export function inserUser(payload: InsertUserPayload) {
+  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const route = 'add-user'
+  const url = `${host}/${route}`
+  return useAsyncData('user-list', async () => {
+    const res = await $fetch(url, {
+      method: 'POST',
+      body: payload,
+      headers: {
+        'Authorization': `Bearer ${useCookie('dpp._token').value}`
+      },
+      responseType: 'json'
+    })
+    return res
+  })
+}

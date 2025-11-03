@@ -21,3 +21,12 @@ interface ResponseUserList {
   message: string
   data: UserData[]
 }
+
+interface InsertUserPayload {
+  fullname: string
+  email: string
+  phoneNumber: string
+  address: string
+  birthDatePlace: string
+  tempatPenugasan: string
+}
