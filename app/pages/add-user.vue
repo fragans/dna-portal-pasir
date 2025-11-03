@@ -1,6 +1,6 @@
 <template>
   <section class="max-w-3xl mx-auto my-8">
-    <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 w-full" @submit="handleFormSubmit">
+    <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 w-full" @submit="handleFormSubmit" @error="onError">
       <UFormField name="fullname" label="Nama Lengkap">
         <UInput v-model="formState.fullname" size="xl" type="text" />
       </UFormField>
@@ -13,10 +13,15 @@
       <UFormField name="address" label="Alamat">
         <UTextarea v-model="formState.address" size="xl" />
       </UFormField>
-      <UCard variant="outline">
+      <UCard variant="outline" :class="[birthErrorMsg ? 'ring-red-500' : 'ring-gray-200']">
         <template #header>
-          <span>Tempat Tanggal Lahir</span>
-          <span class="text-xs text-gray-500 float-right">{{ formState.birthDatePlace }}</span>
+          <p>
+            <span class="text-sm">Tempat Tanggal Lahir</span>
+            <span class="text-xs text-gray-500 float-right">{{ formState.birthDatePlace }}</span>
+          </p>
+          <p v-if="birthErrorMsg" class="text-xs">
+            <span class="text-red-500">{{ birthErrorMsg }}</span>
+          </p>
           <UFormField name="birthDatePlace" class="hidden">
             <UInput v-model="formState.birthDatePlace" size="xl" type="text"/>
           </UFormField>
@@ -51,6 +56,7 @@
           </div>
         </template>
       </UCard>
+      
       <UFormField name="tempatPenugasan" label="Tempat Penugasan">
         <UInput v-model="formState.tempatPenugasan" size="xl" />
       </UFormField>
@@ -73,17 +79,21 @@ import * as z from 'zod'
 import { insertUser } from '~~/utils/apiRepo/user'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { DateValue } from '@internationalized/date'
+import type { FormErrorEvent } from '@nuxt/ui'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createCalendar, getLocalTimeZone, toCalendar, today, CalendarDate } from '@internationalized/date'
 
 
 
-// date-formatter
+// date-related const
 const formatter = new Intl.DateTimeFormat('id-ID', { month: 'long' });
-const birthPlace = ref('')
 const calendarValue = shallowRef(new CalendarDate(2022, 1, 10))
 const defaultDate = new CalendarDate(2024, 10, 3)
+
+
+const birthPlace = ref('')
 const requiredMessage = 'harus diisi'
+const birthErrorMsg = ref<string>('')
 
 const calendarOpen = ref(false)
 const formState = reactive<InsertUserPayload>({
@@ -96,7 +106,7 @@ const formState = reactive<InsertUserPayload>({
 })
 
 const schema = z.object({
-  fullname: z.string(`Nama ${requiredMessage}`),
+  fullname: z.string(`Nama Lengkap ${requiredMessage}`),
   email: z.email('Email tidak valid'),
   phoneNumber: z.string(`Nomor Telepon ${requiredMessage}`),
   address: z.string(`Alamat ${requiredMessage}`),
@@ -122,8 +132,12 @@ const formattedDate = computed(() => {
 
 async function handleFormSubmit () {
   await execute()
-  console.log({data});
-  
+  console.log({data}); 
+}
+
+function onError (event: FormErrorEvent) {
+  const hasBirthError = event.errors.find((error) => error.name === 'birthPlaceDate') 
+  if (hasBirthError) birthErrorMsg.value = hasBirthError.message  
 }
 
 </script>
