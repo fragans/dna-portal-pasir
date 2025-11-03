@@ -1,4 +1,15 @@
-interface ReportDocument {
+interface FormStateDocument {
+  date: string | undefined
+  location: string | undefined
+  namaSopir: string | undefined
+  dokumen: File[]
+  noSupir: undefined
+  batch: number | undefined
+  muatan: number | undefined
+  keterangan: string | undefined
+}
+
+interface DocumentPayload {
   masterUserID: string
   tanggal: string
   lokasi: string

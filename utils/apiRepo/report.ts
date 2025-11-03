@@ -1,5 +1,5 @@
 
-export function insertDocument(payload: ReportDocument) {
+export function insertDocument(payload: DocumentPayload) {
   // https://dummyjson.com/docs/auth
   const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/add-document'
   const fetchKey = computed(() => `insert-${new Date().getTime()}`)

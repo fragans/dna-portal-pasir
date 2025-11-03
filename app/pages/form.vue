@@ -3,8 +3,12 @@
     <!-- eslint-disable vue/valid-v-slot -->
     <section class="max-w-3xl mx-auto my-8">
       <div class="flex gap-4 flex-col md:flex-row">
-        <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 p-4 md:p-0 w-full" @submit="onSubmit">
-          <UAccordion :items="[{ label:  getUsername , icon: 'i-lucide-user' }]" class="opacity-50">
+        <UForm :state="formState" :schema="schema" class="flex flex-col gap-4 p-4 md:p-0 w-full" @submit="onSubmit" @error="onError">
+          <UAccordion
+            v-model="accordionExpanded"
+            :items="[{ label:  getUsername , icon: 'i-lucide-user' }]"
+            class="opacity-50"
+          >
             <template #content>
               <div class="grid grid-cols-2 gap-4">
                 <UFormField name="date">
@@ -63,16 +67,6 @@
                     </div>
                     <div v-else class="w-full flex flex-wrap items-center gap-5">
                       <div v-for="(file, key) in formState.dokumen" :key="key" class="relative rounded-lg border border-primary">
-                        <UButton
-                          ref="removeFileButtonRef"
-                          variant="solid"
-                          color="error"
-                          size="xs"
-                          class="p-1 rounded-full absolute -top-2 -right-2 z-10"
-                          @click="removeFile(key); removeUploadedfile(key)"
-                        >
-                          <UIcon name="i-lucide-x" class="text-white size-4"/>
-                        </UButton>
                         <div class="relative">
 
                           <img :src="createObjectUrl(file)" class="w-20 h-20 object-cover rounded-lg">
@@ -82,8 +76,8 @@
                         </div>
                       </div>
                       <div class="flex justify-end w-20 h-20 border-dashed border-gray-600">
-                        <UButton variant="outline" block @click="open()">
-                          <UIcon name="i-lucide-plus" class="text-4xl text-gray-500" />
+                        <UButton variant="outline" block @click="removeFile();open();clearUploadedfiles()">
+                          <UIcon name="i-lucide-trash-2" class="text-4xl text-gray-500" />
                         </UButton>
                       </div>
                     </div>
@@ -113,6 +107,15 @@
             </div>
           </div>
         </UForm>
+        <UModal v-model:open="modalLocationAccess">
+          <template #title>
+            <UIcon name="i-lucide-map-pin-x" class="size-4" />
+            Akses Lokasi Diperlukan
+          </template>
+          <template #body>
+            Silahkan ijinkan akses lokasi untuk melanjutkan
+          </template>
+        </UModal>
       </div>
     </section>
   </div>
@@ -121,7 +124,7 @@
 import { useUserStore } from '~/stores/user'
 import { insertDocument } from '~~/utils/apiRepo/report'
 import ModalFormLoader from '~/components/modal/FormLoader.vue'
-import type { FormSubmitEvent } from '@nuxt/ui'
+import type { FormSubmitEvent, FormErrorEvent } from '@nuxt/ui'
 import { UButton } from '#components'
 import * as z from 'zod'
 
@@ -130,7 +133,8 @@ const { getUsername } = useUserStore()
 const toast = useToast()
 
 const isGrantedLocation = ref(false)
-const removeFileButtonRef = ref<typeof UButton[] | null>(null)
+const modalLocationAccess = ref(false)
+const accordionExpanded = ref()
 
 const getFormatDate = computed(() => {
   const dd = new Date()
@@ -169,8 +173,8 @@ const uploadDone = computed<undefined|boolean>(() => {
   return true
 })
 
-function removeUploadedfile (index: number) {
-  imgUrls.value.splice(index, 1)
+function clearUploadedfiles () {
+  imgUrls.value = []
 }
 
 function createObjectUrl (file: File): string {
@@ -195,15 +199,15 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/quicktime"];
 const ACCEPTED_DOC_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
-const formState = reactive({
-  date: '',
-  location: '',
-  namaSopir: '',
+const formState = reactive<FormStateDocument>({
+  date: undefined,
+  location: undefined,
+  namaSopir: undefined,
   dokumen: [] as File[],
-  noSupir: '',
-  batch: 0,
-  muatan: 0,
-  keterangan: '',
+  noSupir: undefined,
+  batch: undefined,
+  muatan: undefined,
+  keterangan: undefined,
 })
 // validator
 const requiredMessage = 'harus diisi'
@@ -251,15 +255,9 @@ function mockUpload(job: FormJobs) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onFileChange(event: Event) {
-  // console.log(formState.dokumen);
-  // const distincted = distinctFiles(formState.dokumen)
-  // console.log(distincted);
-  
-  
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   formState.dokumen.forEach( async (doc, index) => {  
     const fileKey = `${doc.type}/${doc.name}`
-    // const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     if (!isUploaded) {
       const { uploadProgress, upload, url } = useS3Upload()
@@ -275,22 +273,14 @@ async function onFileChange(event: Event) {
         fileKey,
         file:doc
       })
-    } else {
-      // await nextTick(()=> {
-      //   console.log(removeFileButtonRef.value);
-      //   removeFileButtonRef.value![index]!.click()
-      // })
-      // remove dupe file from State
-      
-      // slots.default()[0].removeFile(index)
     }
-    
-
   });
   
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 async function onSubmit(event: FormSubmitEvent<Schema>) {
+  console.log(event);
+  
   const lastJob = {
     type: 'form',
     title: 'menyimpan',
@@ -299,17 +289,19 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   };
 
   const documents = imgUrls.value.map((doc) => doc.url)
-  const generatedPayload: ReportDocument = {
+  const generatedPayload: DocumentPayload = {
     masterUserID: getUsername,
-    tanggal: formState.date,
-    lokasi: formState.location,
+    tanggal: formState.date!,
+    lokasi: formState.location!,
     batch: formState.batch!.toString(),
-    muatan: formState.muatan,
-    namaSupir: formState.namaSopir,
-    noSupir: formState.noSupir,
-    keterangan: formState.keterangan,
+    muatan: formState.muatan!,
+    namaSupir: formState.namaSopir!,
+    noSupir: formState.noSupir!,
+    keterangan: formState.keterangan ?? '',
     documents
   }
+  console.log(generatedPayload);
+  
   try {
     const { execute:executeInsertDocument, status } = await insertDocument(generatedPayload)
     await executeInsertDocument()
@@ -337,7 +329,14 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   } 
   
 }
+function onError (event: FormErrorEvent) {
+  console.log({event});
+  const hasLocationError = event.errors.find((error) => error.name === 'location') 
 
+  if (hasLocationError) modalLocationAccess.value = true
+  
+  
+}
 async function hasLocationAccess (): Promise<boolean> {
   const perm = await navigator.permissions.query({name: 'geolocation'})
   const isGranted = perm.state === 'granted'
