@@ -60,7 +60,10 @@
             >
               <template #default="{removeFile, open}">
                 <div class="">
-                  <div class="flex  w-full min-h-[200px] border border-gray-600 border-dashed rounded-lg p-4 justify-center">
+                  <div class="relative flex  w-full min-h-[200px] border border-gray-600 border-dashed rounded-lg p-4 justify-center">
+                    <div v-if="!isUploading" class="flex absolute top-2 right-2 w-6 h-6">
+                      <UIcon name="i-lucide-loader" class="text-gray-500 size-5 animate-spin"/>
+                    </div>
                     <div v-if="formState.dokumen.length === 0" class="w-full min-h-[200px] flex-col items-center justify-center flex gap-3 text-gray-500" @click="open()">
                       <UIcon name="i-lucide-cloud-upload" class="text-4xl" />
                       <span>{{ uploadHint }}</span>
@@ -70,13 +73,10 @@
                         <div class="relative">
 
                           <img :src="createObjectUrl(file)" class="w-20 h-20 object-cover rounded-lg">
-                          <div v-if="!uploadDone" class="w-full absolute inset-0 flex items-center justify-center bg-black/75 rounded-lg">
-                            <UIcon name="i-lucide-loader" class="text-white size-5 animate-spin"/>
-                          </div>
                         </div>
                       </div>
                       <div class="flex justify-end w-20 h-20 border-dashed border-gray-600">
-                        <UButton variant="outline" block @click="removeFile();open();clearUploadedfiles()">
+                        <UButton variant="outline" block color="error" @click="removeFile();open();clearUploadedfiles()">
                           <UIcon name="i-lucide-trash-2" class="text-4xl text-gray-500" />
                         </UButton>
                       </div>
@@ -91,8 +91,8 @@
 
           
           <div class="p-4 text-sm text-gray-500">
-            <UButton block type="submit" :disabled="!uploadDone">
-              <span v-if="uploadDone">
+            <UButton block type="submit" :disabled="!isUploading">
+              <span v-if="isUploading">
                 Kirim
               </span>
               <span v-else class="animate-pulse text-gray-500">
@@ -101,13 +101,15 @@
             </UButton>
           </div>
           <div>
-            <div v-for="(url,key) in imgUrls" :key="key" class="py-2">
-              <p>{{ url.fileKey }}</p>
-              <a :href="url.url" class="line-clamp-1">{{ url.url }}</a>
+
+            <div v-for="(img,key) in imgUrls" :key="key" class="py-2">
+              <p>{{ img.fileKey }}</p>
+              <p>{{  img.progress }} %</p>
+              <a :href="img.url" class="line-clamp-1">{{ img.url }}</a>
             </div>
           </div>
         </UForm>
-        <UModal v-model:open="modalLocationAccess">
+        <UModal v-model:open="alertLocationAccess">
           <template #title>
             <UIcon name="i-lucide-map-pin-x" class="size-4" />
             Akses Lokasi Diperlukan
@@ -133,18 +135,8 @@ const { getUsername } = useUserStore()
 const toast = useToast()
 
 const isGrantedLocation = ref(false)
-const modalLocationAccess = ref(false)
+const alertLocationAccess = ref(false)
 const accordionExpanded = ref()
-
-const getFormatDate = computed(() => {
-  const dd = new Date()
-  const day = String(dd.getDate()).padStart(2, '0')
-  const month = String(dd.getMonth() + 1).padStart(2, '0') //January is 0!
-  const year = dd.getFullYear()
-  const hours = String(dd.getHours()).padStart(2, '0')
-  const minutes = String(dd.getMinutes()).padStart(2, '0')
-  return `${year}-${month}-${day} ${hours}:${minutes}`
-})
 
 const jobs = ref<FormJobs[]>([])
 const overlay = useOverlay()
@@ -157,7 +149,8 @@ const modal = overlay.create(ModalFormLoader, {
 interface UploadedFile {
   file: File
   fileKey: string
-  url: string
+  url: string,
+  progress: number
 }
 
 // to watch upload progress
@@ -165,12 +158,9 @@ interface UploadedFile {
 // url default value is ''
 const imgUrls = ref<UploadedFile[]>([])
 
-const uploadDone = computed<undefined|boolean>(() => {
-  const hasUncomplete = imgUrls.value.find((img)=> img.url === '')
-  console.log({hasUncomplete});
-  
-  if (hasUncomplete) return false
-  return true
+const isUploading = computed<undefined|boolean>(() => {
+  const hasUncomplete = imgUrls.value.find((img) => img.progress < 100)
+  return !hasUncomplete
 })
 
 function clearUploadedfiles () {
@@ -181,17 +171,6 @@ function createObjectUrl (file: File): string {
   if (file.type.startsWith('video')) return 'https://placehold.co/100/000000/FFFFFF/webp?text=%3E'
   return URL.createObjectURL(file)
 }
-
-const getCoordinates = computed(() => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const lat = position.coords.latitude
-      const lon = position.coords.longitude
-      formState.location = `${lat}, ${lon}`
-    })
-  }
-  return formState.location
-})
 
 const uploadHint = 'PNG or JPG (max. 5MB per file), Minimal 1 foto'
 
@@ -217,10 +196,13 @@ const fileValidator = z.instanceof(File, { message: `Image ${requiredMessage}.` 
 const schema = z.object({
   date: z.string(`Tanggal keberangkatan ${requiredMessage}.`),
   location: z.string(`Lokasi keberangkatan ${requiredMessage}.`),
-  noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`).min(4, 'No kendaraan minimal 4 digit. ex: AB1234CD').max(9, 'No kendaraan minimal 8 digit. ex: AB1234CD'),
-  muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.'),
-  batch: z.number(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0'),
-  namaSopir: z.string(`Nama sopir ${requiredMessage}.`).min(3, 'Nama sopir minimal 3 huruf.'),
+  noSupir: z.string(`No kendaraan sopir ${requiredMessage}.`)
+    .min(4, 'No kendaraan minimal 4 digit. ex: AB1234CD')
+    .max(9, 'No kendaraan minimal 8 digit. ex: AB1234CD')
+    .optional(),
+  muatan: z.number(`Muatan ${requiredMessage}.`).min(1, 'Nilai minimal 1 ton.').optional(),
+  batch: z.number(`Batch harus ${requiredMessage}.`).min(1, 'Nilai Batch harus lebih besar dari 0').optional(),
+  namaSopir: z.string(`Nama sopir ${requiredMessage}.`).min(3, 'Nama sopir minimal 3 huruf.').optional(),
   dokumen: z.array(fileValidator)
     .refine(
       (files) => files.filter((file) => file.type.startsWith('image')).length >= 1,
@@ -255,24 +237,27 @@ function mockUpload(job: FormJobs) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onFileChange(event: Event) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   formState.dokumen.forEach( async (doc, index) => {  
     const fileKey = `${doc.type}/${doc.name}`
     const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     if (!isUploaded) {
       const { uploadProgress, upload, url } = useS3Upload()
-      const progress = ref(0)
-      watch(uploadProgress, (newValue) => {
-        progress.value = newValue
-      })
-      console.log('upload');
-      
-      await upload(doc);
       imgUrls.value.push({
         url:url.value,
         fileKey,
-        file:doc
+        file:doc,
+        progress: uploadProgress.value
       })
+      watch(uploadProgress, () => {
+       imgUrls.value[index]!.progress = uploadProgress.value
+      })
+      watch(url, () => {
+        imgUrls.value[index]!.url = url.value
+      })
+      
+      console.log('upload');
+      await upload(doc);
+      
     }
   });
   
@@ -293,10 +278,10 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     masterUserID: getUsername,
     tanggal: formState.date!,
     lokasi: formState.location!,
-    batch: formState.batch!.toString(),
-    muatan: formState.muatan!,
-    namaSupir: formState.namaSopir!,
-    noSupir: formState.noSupir!,
+    batch: formState.batch ? formState.batch.toString() : '1',
+    muatan: formState.muatan ?? 0,
+    namaSupir: formState.namaSopir ?? '',
+    noSupir: formState.noSupir ?? '',
     keterangan: formState.keterangan ?? '',
     documents
   }
@@ -333,7 +318,7 @@ function onError (event: FormErrorEvent) {
   console.log({event});
   const hasLocationError = event.errors.find((error) => error.name === 'location') 
 
-  if (hasLocationError) modalLocationAccess.value = true
+  if (hasLocationError) alertLocationAccess.value = true
   
   
 }
@@ -353,6 +338,27 @@ async function hasLocationAccess (): Promise<boolean> {
   isGrantedLocation.value = true
   return isGranted
 }
+
+const getFormatDate = computed(() => {
+  const dd = new Date()
+  const day = String(dd.getDate()).padStart(2, '0')
+  const month = String(dd.getMonth() + 1).padStart(2, '0') //January is 0!
+  const year = dd.getFullYear()
+  const hours = String(dd.getHours()).padStart(2, '0')
+  const minutes = String(dd.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}`
+})
+
+const getCoordinates = computed(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const lat = position.coords.latitude
+      const lon = position.coords.longitude
+      formState.location = `${lat}, ${lon}`
+    })
+  }
+  return formState.location
+})
 
 onMounted( async () => {
   await hasLocationAccess()

@@ -16,7 +16,7 @@ export function useS3Upload() {
   const fileObject = ref<File| undefined>()
   const uploadParams = ref({})
   const isUploadDone = ref(false)
-  const uploadProgress = ref(0)
+  const uploadProgress: Ref<number> = ref(0)
   const uploadProgressLoaded = ref(0)
   const uploadProgressTotal = ref(0)
   const uploadResponse = ref(null)
@@ -108,7 +108,6 @@ export function useS3Upload() {
       Filename: filename
     }
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const getPresignedUrl = async (url: string) => {
     console.log({url});
     // url = "https://s3.ap-southeast-1.wasabisys.com/portal-bayur-jaya-v1/image/1761488700549-Screenshot%25202025-09-11%2520at%252016.07.38.png"

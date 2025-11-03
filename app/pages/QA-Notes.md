@@ -11,6 +11,7 @@
  -lokasi
  -waktu
  -tanggal
+ - file image(1)
 
 
 filter#get list data: 
