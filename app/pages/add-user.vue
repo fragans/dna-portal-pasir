@@ -17,13 +17,13 @@
         <template #header>
           <p>
             <span class="text-sm">Tempat Tanggal Lahir</span>
-            <span class="text-xs text-gray-500 float-right">{{ formState.birthDatePlace }}</span>
+            <span class="text-xs text-gray-500 float-right">{{ formState.birthPlaceDate }}</span>
           </p>
           <p v-if="birthErrorMsg" class="text-xs">
             <span class="text-red-500">{{ birthErrorMsg }}</span>
           </p>
-          <UFormField name="birthDatePlace" class="hidden">
-            <UInput v-model="formState.birthDatePlace" size="xl" type="text"/>
+          <UFormField name="birthPlaceDate" class="hidden">
+            <UInput v-model="formState.birthPlaceDate" size="xl" type="text"/>
           </UFormField>
         </template>
         <template #default>
@@ -35,6 +35,7 @@
               v-model:open="calendarOpen"
               :dismissible="false"
               title="Tanggal Pertama Kirim Koran"
+              description="calendar picker modal"
             >
               <UFormField name="birthDate" label="Tanggal" @click="calendarOpen = true" >
                 <UInput v-model="formattedDate" icon="i-lucide-calendar-days" size="xl" type="text"/>
@@ -77,13 +78,10 @@
 <script setup lang="ts">
 import * as z from 'zod'
 import { insertUser } from '~~/utils/apiRepo/user'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { DateValue } from '@internationalized/date'
 import type { FormErrorEvent } from '@nuxt/ui'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createCalendar, getLocalTimeZone, toCalendar, today, CalendarDate } from '@internationalized/date'
+import { CalendarDate } from '@internationalized/date'
 
-
+const toast = useToast()
 
 // date-related const
 const formatter = new Intl.DateTimeFormat('id-ID', { month: 'long' });
@@ -94,14 +92,14 @@ const defaultDate = new CalendarDate(2024, 10, 3)
 const birthPlace = ref('')
 const requiredMessage = 'harus diisi'
 const birthErrorMsg = ref<string>('')
-
 const calendarOpen = ref(false)
+
 const formState = reactive<InsertUserPayload>({
   fullname: undefined,
   email: undefined,
   phoneNumber: undefined,
   address: undefined,
-  birthDatePlace: undefined,
+  birthPlaceDate: undefined,
   tempatPenugasan: undefined
 })
 
@@ -121,9 +119,12 @@ function handleSelectDate () {
 }
 
 function formatterBirthDatePlace () {
-  if (!birthPlace.value || !formattedDate.value) return ''
+  if (!birthPlace.value || !formattedDate.value) {
+    formState.birthPlaceDate = ''
+    return  
+  }
   const capitalized = birthPlace.value.charAt(0).toUpperCase() + birthPlace.value.slice(1);
-  formState.birthDatePlace = capitalized + ', ' + formattedDate.value
+  formState.birthPlaceDate = capitalized + ', ' + formattedDate.value
 }
 
 const formattedDate = computed(() => {
@@ -133,11 +134,30 @@ const formattedDate = computed(() => {
 async function handleFormSubmit () {
   await execute()
   console.log({data}); 
+  if (status.value === 'success') {
+    toast.add({
+      title: 'Berhasil menambahkan user',
+      description: 'User berhasil ditambahkan',
+      icon: 'i-lucide-circle-check',
+    })
+    await useRouter().push('/users')
+  } else if (status.value === 'error') {
+    toast.add({
+      title: 'Gagal menambahkan user',
+      description: 'Data user sudah ada atau terjadi kesalahan',
+      icon: 'i-lucide-alert-circle',
+      color: 'error',
+    })
+  }
 }
 
 function onError (event: FormErrorEvent) {
+  console.log({event});
+  
   const hasBirthError = event.errors.find((error) => error.name === 'birthPlaceDate') 
-  if (hasBirthError) birthErrorMsg.value = hasBirthError.message  
+  
+  if (hasBirthError) birthErrorMsg.value = hasBirthError.message
+  else birthErrorMsg.value = ''
 }
 
 </script>

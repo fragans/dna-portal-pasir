@@ -1,19 +1,19 @@
 
 interface UserData {
-  masterUserID: string;
-  fullname: string;
-  email: string;
-  phoneNumber: string;
   address: string;
-  role: string;
-  birthPlaceDate: string;
   assignmentPlace: string;
+  birthPlaceDate: string;
   createdBy: string;
   createdDate: string;
-  modifiedBy: string | null;
-  modifiedDate: string | null;
   deletedBy: string | null;
   deletedDate: string | null;
+  email: string;
+  fullname: string;
+  masterUserID: string;
+  modifiedBy: string | null;
+  modifiedDate: string | null;
+  phoneNumber: string;
+  role: string;
 }
 
 interface LoginResponse {

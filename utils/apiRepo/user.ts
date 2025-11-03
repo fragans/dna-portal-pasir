@@ -38,7 +38,7 @@ export function insertUser(payload: InsertUserPayload) {
   const route = 'add-user'
   const url = `${host}/${route}`
   return useAsyncData('insert-user', async () => {
-    const res = await $fetch(url, {
+    const res = await $fetch<ResponseInsertUser>(url, {
       method: 'POST',
       body: payload,
       headers: {

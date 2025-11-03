@@ -27,6 +27,11 @@ interface InsertUserPayload {
   email: string | undefined
   phoneNumber: string | undefined
   address: string | undefined
-  birthDatePlace: string | undefined
+  birthPlaceDate: string | undefined
   tempatPenugasan: string | undefined
+}
+
+interface ResponseInsertUser {
+  data: UserData
+  message: string
 }
