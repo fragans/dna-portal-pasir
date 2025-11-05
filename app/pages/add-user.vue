@@ -47,7 +47,7 @@
                     <UButton variant="outline" color="primary" class="mr-2" @click="calendarOpen = false">
                       Batal
                     </UButton>
-                    <UButton color="primary" @click="handleSelectDate">
+                    <UButton color="primary" @click="handleSelectDate(); formatterBirthDatePlace();">
                       Pilih
                     </UButton>
                   </div>
@@ -119,7 +119,7 @@ function handleSelectDate () {
 }
 
 function formatterBirthDatePlace () {
-  if (!birthPlace.value || !formattedDate.value) {
+  if (!birthPlace.value || !calendarValue.value) {
     formState.birthPlaceDate = ''
     return  
   }
