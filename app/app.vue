@@ -5,7 +5,7 @@
 
       
       <template #title>
-        Portal Bayu
+        Bayur Jaya
       </template>
 
       <template #right >
@@ -27,7 +27,6 @@
 
       <template #body>
         <UNavigationMenu  :items="items" orientation="vertical" class="-mx-2.5" />
-        
       </template>
       
     </UHeader>
