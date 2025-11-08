@@ -9,7 +9,9 @@ import type { BreadcrumbItem } from '@nuxt/ui'
 const route = useRoute()
 
 const showCrumbs = computed(() => route.name !== 'index' && route.name !== 'login' && route.name !== 'logout')
-
+const getPageTitle = computed<string>(()=> {
+  return route.meta.title as string
+})
 const crumbs = computed<BreadcrumbItem[]>(() => {
   return [
     {
@@ -18,7 +20,7 @@ const crumbs = computed<BreadcrumbItem[]>(() => {
       to: '/'
     },
     {
-      label: route.name as string,
+      label: getPageTitle.value ?? route.name as string,
     }
   ]
 })

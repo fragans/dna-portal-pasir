@@ -16,14 +16,15 @@
               </div>
             </UCard>
           </NuxtLink>
-          <NuxtLink to="/document">
+          <NuxtLink to="/my-document">
             <UCard variant="solid" color="secondary">
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
-                <span class="font-bold">Lihat Entries</span>
+                <span class="font-bold">Entries User</span>
               </div>
             </UCard>
           </NuxtLink>
+          
         </div>
       </UCard>
 
@@ -45,6 +46,14 @@
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-user-plus" class="mx-auto mb-2" size="48" />
                 <span class="font-bold">Add User</span>
+              </div>
+            </UCard>
+          </NuxtLink>
+          <NuxtLink to="/document">
+            <UCard variant="solid" color="secondary">
+              <div class="flex flex-col gap-3 justify-center text-center">
+                <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
+                <span class="font-bold">Lihat Entries</span>
               </div>
             </UCard>
           </NuxtLink>

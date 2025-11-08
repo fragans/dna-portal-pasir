@@ -1,6 +1,25 @@
 <template>
   <div>
-    <section class="max-w-3xl mx-auto my-8">
+    <section class="py-4">
+      <UCard variant="subtle">
+        <div class=" ">
+          <UAccordion
+            v-model="accordionExpanded"
+            trailing-icon="i-lucide-refresh-ccw"
+            :items="[{ label: 'Filter Tanggal' , icon: 'i-lucide-calendar-days' }]"
+          >
+            <template #content>
+              <UCalendar v-model="calendarValue" :default-value="defaultDate" class="p-2"/>
+            </template>
+          </UAccordion>
+        </div>
+      </UCard>
+    </section>
+    <section class="">
+      <div class="flex justify-end">
+        <strong>{{ selectedFormattedDate }}</strong>
+      </div>
+      
       <template v-if="status==='success' && reportsData">
         <UTable :data="reportsData.data" :columns="columns"  class="flex-1">
           <template #expanded="{ row }">
@@ -29,24 +48,55 @@
       </template>
     </section>
 
-    <UModal :open="isError" title="Gagal memuat data">
+    <!-- <UModal :open="isError" title="Gagal memuat data">
       <template #footer>
         error
       </template>
-    </UModal>
+    </UModal> -->
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { TableColumn } from '@nuxt/ui'
-import { getReports } from '~~/utils/apiRepo/report'
-const { data:reportsData, status, execute} = await getReports()
-const { getPresignedUrl } = useS3Upload()
-await execute()
+import { useUserStore } from '~/stores/user'
+import { getUserReportsByDate } from '~~/utils/apiRepo/report'
+import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
+
+const userStore = useUserStore()
+const { getUsername } = storeToRefs(userStore)
+
+
+
+
+const todayDate = today(getLocalTimeZone())
+const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
+const calendarValue = shallowRef(defaultDate)
+const formatter = new Intl.DateTimeFormat('id-ID', { month: 'long' })
 
 const UButton = resolveComponent('UButton')
+const accordionExpanded = ref()
 
-const isError = computed<boolean>(() => status.value === 'error')
+const selectedFormattedDate = computed(() => {
+  const dd = calendarValue.value
+  const jsDate = dd.toDate(getLocalTimeZone())
+  const monthName = formatter.format(jsDate)
+
+  return `${dd.day} ${monthName} ${dd.year}`
+})
+
+const formattedDatePayload = computed(() => {
+  const dd = calendarValue.value
+  return ` ${dd.year}-${dd.month}-${dd.day}`
+})
+
+
+const { data:reportsData, status } = getUserReportsByDate(getUsername, formattedDatePayload)
+const { getPresignedUrl } = useS3Upload()
+
+
+
+
+// const isError = computed<boolean>(() => status.value === 'error')
 
 const columns: TableColumn<GetReport>[] = [
   // {
