@@ -106,7 +106,7 @@ const columns: TableColumn<GetReport>[] = [
   // },
   {
     accessorKey: 'createdDate',
-    header: 'Date',
+    header: 'Tgl. Laporan',
     cell: ({ row }) => {
       return new Date(row.getValue('createdDate'))
       .toLocaleString('id-ID', {
@@ -124,7 +124,7 @@ const columns: TableColumn<GetReport>[] = [
   },
   {
     accessorKey: 'loadAmount',
-    header: 'Amount',
+    header: 'Muatan',
     cell: ({ row }) => {
       return `${row.getValue('loadAmount')} Ton`
     }
