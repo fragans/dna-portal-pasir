@@ -1,4 +1,5 @@
 export default defineAppConfig({
+
   toaster: {
     expand: true,
     duration: 5000

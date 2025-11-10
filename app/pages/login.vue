@@ -1,6 +1,9 @@
 <template>
   <div>
     <div class="flex flex-col items-center justify-center min-h-screen">
+      <div class="py-4">
+        <img src="/logo/logo-color.png" alt="" class="w-36 h-36">
+      </div>
       <div v-if="!isLogin">
         <UForm
           :state="formState"
