@@ -1,25 +1,31 @@
 <template>
   <div>
     <section class="mt-3">
-      <div class="flex justify-between">
-        <div class="flex gap-2">
-          <UButton
-            icon="i-lucide-download"
-          />
+      <UCard>
+        <div class="flex justify-between">
+          <div class="flex gap-2">
+            <UButton
+              icon="i-lucide-download"
+            />
+          </div>
+          <div class="text-gray-400 text-xs text-center">
+            <p v-if="selectedUser">{{ selectedUser?.label }} ({{ selectedUser?.value }})</p>
+            <p v-if="filterDateEnabled">{{ selectedFormattedDate }}</p>
+          </div>
+          <div>
+            <UButton
+              color="primary"
+              :variant=" filterEnabled ? 'subtle' : 'solid'"
+              icon="i-lucide-filter"
+              @click="openModalFilter = true"
+            >
+              <span v-if="filterEnabled">•</span>
+              <UIcon v-if="filterDateEnabled" name="i-lucide-calendar" />
+              <UIcon v-if="filterUserEnabled" name="i-lucide-user" />
+            </UButton>
+          </div>
         </div>
-        <div>
-          <UButton
-            color="primary"
-            :variant=" filterEnabled ? 'subtle' : 'solid'"
-            icon="i-lucide-filter"
-            @click="openModalFilter = true"
-          >
-            <span v-if="filterEnabled">•</span>
-            <UIcon v-if="filterDateEnabled" name="i-lucide-calendar" />
-            <UIcon v-if="filterUserEnabled" name="i-lucide-user" />
-          </UButton>
-        </div>
-      </div>
+      </UCard>
     </section>
     <section class="max-w-3xl mx-auto my-3">
       <template v-if="status==='success' && reportsData">
@@ -30,20 +36,35 @@
                 v-for="(item, key) in row.original.documents"
                 :key="key"
               >
-                
                 <UButton
                   size="xl"
                   class="max-w-md"
                   variant="subtle"
                   @click="generateImageUrl(item.link)"
                 >
-                 <span>{{ key + 1 }}.</span>
+                  <span>{{ key + 1 }}.</span>
                   <span class="line-clamp-1 text-xs">
                     {{ item.link }}
                   </span>
                   <UIcon name="i-lucide-square-arrow-out-up-right" class="size-4"/>
                 </UButton>
               </div>
+              <div v-if="row.original.documents.length === 0" class="text-gray-300 text-center">
+                Tidak ada dokumen
+              </div>
+            </div>
+          </template>
+          <template #empty>
+            <div class="text-center">
+              <p>
+                Data tidak ditemukan
+              </p>
+              <p v-if="filterDateEnabled">
+                pada tanggal {{ selectedFormattedDate }}
+              </p>
+              <p v-if="selectedUser">
+                pada user {{ selectedUser?.label }} ({{ selectedUser?.value }})
+              </p>
             </div>
           </template>
         </UTable>
@@ -55,12 +76,15 @@
         error
       </template>
     </UModal>
-    <UModal v-model:open="openModalFilter" title="filter data" description="filter data table">
+    <UModal v-model:open="openModalFilter" title="Ubah Filter Data" :description="filterEnabled ? 'Filter aktif' : 'Filter tidak aktif'">
 
       <template #body>
         <div class="flex gap-4 flex-col">
           <div>
-            <p class="text-xs pb-2"> Filter User </p>
+            <p class="text-sm pb-2 flex items-center gap-2">
+              <UIcon :name="selectedUser ? 'i-lucide-square-check' : 'i-lucide-square-x'" class="size-5" :class="selectedUser ? 'text-green-500' : 'text-gray-300'"/>
+              Filter User 
+            </p>
             <USelectMenu
               v-model="selectedUser"
               class="w-full"
@@ -81,11 +105,11 @@
               </template>
             </USelectMenu>
           </div>
-          <hr class="text-gray-200">
+          <hr class="text-gray-600">
           <div>
             <UCheckbox
               v-model="filterDateEnabled"
-              label="Filter Tanggal"
+              :label="`Filter Tanggal ${filterDateEnabled ? `: ${selectedFormattedDate}` : ''}`"
             />
             <UCalendar v-model="calendarValue" :default-value="defaultDate" class="p-2"/>
           </div>
@@ -116,6 +140,7 @@ const filterUserEnabled = computed(() => {
 const todayDate = today(getLocalTimeZone())
 const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
 const calendarValue = shallowRef(defaultDate)
+const formatter = new Intl.DateTimeFormat('id-ID', { month: 'long' })
 const filterEnabled = computed (() => {
   return filterDateEnabled.value || filterUserEnabled.value
 })
@@ -123,6 +148,13 @@ const formattedDatePayload = computed(() => {
   if (!filterDateEnabled.value) return ''
   const dd = calendarValue.value
   return `${dd.year}-${dd.month}-${dd.day}`
+})
+const selectedFormattedDate = computed(() => {
+  const dd = calendarValue.value
+  const jsDate = dd.toDate(getLocalTimeZone())
+  const monthName = formatter.format(jsDate)
+
+  return `${dd.day} ${monthName} ${dd.year}`
 })
 
 const selectedUser = ref<UserSelectMenuItem>()
@@ -132,9 +164,8 @@ const openModalFilter = ref(false)
 const UButton = resolveComponent('UButton')
 // const UCheckbox = resolveComponent('UCheckbox')
 
-const { data:reportsData, status, execute } = await getUserReportsForAdmin(selectedUser, formattedDatePayload)
+const { data:reportsData, status } = await getUserReportsForAdmin(selectedUser, formattedDatePayload)
 const { getPresignedUrl } = useS3Upload()
-await execute()
 
 const isError = computed<boolean>(() => status.value === 'error')
 
@@ -147,9 +178,7 @@ const columns = ref<TableColumn<GetReport>[]>([
       .toLocaleString('id-ID', {
         day: 'numeric',
         month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+        year: 'numeric'
       })
     }
   },
@@ -159,7 +188,7 @@ const columns = ref<TableColumn<GetReport>[]>([
   },
   {
     accessorKey: 'loadAmount',
-    header: 'Amount',
+    header: 'Muatan',
     cell: ({ row }) => {
       return `${row.getValue('loadAmount')} Ton`
     }
