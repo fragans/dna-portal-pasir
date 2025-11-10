@@ -35,3 +35,9 @@ interface ResponseInsertUser {
   data: UserData
   message: string
 }
+
+interface UserSelectMenuItem {
+  label: string;
+  place: string;
+  value: string
+}

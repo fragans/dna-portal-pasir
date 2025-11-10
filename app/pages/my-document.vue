@@ -86,7 +86,7 @@ const selectedFormattedDate = computed(() => {
 
 const formattedDatePayload = computed(() => {
   const dd = calendarValue.value
-  return ` ${dd.year}-${dd.month}-${dd.day}`
+  return `${dd.year}-${dd.month}-${dd.day}`
 })
 
 

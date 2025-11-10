@@ -4,7 +4,8 @@ export default defineNuxtConfig({
     head: {
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1',
-      title: 'Bayur Jaya - %Portal Pasir',
+      title: 'Portal Pasir',
+      titleTemplate: '%s • Bayur Jaya',
       meta: [
         { name: 'description', content: 'Bayur Jaya Portal Pasir' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

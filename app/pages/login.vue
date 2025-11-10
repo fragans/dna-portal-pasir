@@ -100,4 +100,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   
 }
 
+useHead({
+  title: 'Login'
+})
+
 </script>

@@ -42,4 +42,7 @@ const profile = computed<UserData | undefined>(() => {
 })
 console.log(data.value);
 
+useHead({
+  title: 'Profile ',
+})
 </script>

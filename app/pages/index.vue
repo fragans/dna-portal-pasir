@@ -20,7 +20,7 @@
             <UCard variant="solid" color="secondary">
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
-                <span class="font-bold">Entries User</span>
+                <span class="font-bold">User Entries</span>
               </div>
             </UCard>
           </NuxtLink>
@@ -53,7 +53,7 @@
             <UCard variant="solid" color="secondary">
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
-                <span class="font-bold">Lihat Entries</span>
+                <span class="font-bold">All Entries</span>
               </div>
             </UCard>
           </NuxtLink>
@@ -63,3 +63,8 @@
     </section>
   </UMain>
 </template>
+<script setup lang="ts">
+useHead({
+  title: 'Dashboard'
+})
+</script>

@@ -71,3 +71,44 @@ export function getUserReportsByDate(uid: MaybeRef<string>, date: MaybeRef<strin
     // No need for an explicit `watch` option.
   )
 }
+
+export function getUserReportsForAdmin(uid: MaybeRef<UserSelectMenuItem|undefined>, date: MaybeRef<string>){
+  const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/list-data'
+  
+  return useAsyncData(
+    () => `list-data-${unref(uid)?.value}-${unref(date)}`, 
+    async () => {
+      const currentDate = unref(date)
+      const currentUser = unref(uid)
+      interface ListDataPayload {
+        startDate?: string;
+        masterUserID?: string
+      }
+      const params: ListDataPayload = {}
+      if (currentUser) {
+        params.masterUserID = currentUser.value
+      }
+      if (currentDate) {
+        params.startDate = currentDate
+      }
+
+      console.log({params});
+  
+      const res = await $fetch<ResponseGetReports>(url, {
+        params,
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${useCookie('dpp._token').value}`,
+          'Content-Type': 'application/json'
+        },
+        responseType: 'json'
+      })
+      return res
+    },
+    {
+      server: false
+    }
+    // The reactive key will automatically trigger a refetch when `date` changes.
+    // No need for an explicit `watch` option.
+  )
+}

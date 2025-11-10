@@ -2,19 +2,21 @@
   <div>
     <section class="mt-3">
       <div class="flex justify-between">
+        <div class="flex gap-2">
+          <UButton
+            icon="i-lucide-download"
+          />
+        </div>
         <div>
           <UButton
             color="primary"
+            :variant=" filterEnabled ? 'subtle' : 'solid'"
             icon="i-lucide-filter"
             @click="openModalFilter = true"
-          />
-        </div>
-        <div class="flex gap-3">
-          <UButton color="neutral" icon="i-lucide-user"> 
-            <UIcon name="i-lucide-x" />
-          </UButton>
-          <UButton color="neutral" icon="i-lucide-calendar"> 
-            <UIcon name="i-lucide-x" />
+          >
+            <span v-if="filterEnabled">•</span>
+            <UIcon v-if="filterDateEnabled" name="i-lucide-calendar" />
+            <UIcon v-if="filterUserEnabled" name="i-lucide-user" />
           </UButton>
         </div>
       </div>
@@ -53,37 +55,46 @@
         error
       </template>
     </UModal>
-    <UModal v-model:open="openModalFilter">
-      <template #header>
-        <p class="text-center w-full">
-          Filter Data  
-        </p>
-      </template>
+    <UModal v-model:open="openModalFilter" title="filter data" description="filter data table">
+
       <template #body>
-        <div>
+        <div class="flex gap-4 flex-col">
           <div>
-            pilih user
+            <p class="text-xs pb-2"> Filter User </p>
             <USelectMenu
               v-model="selectedUser"
-              class="w-48"
-              :items="users?.data"
-              placeholder="Pilih user"
+              class="w-full"
+              size="xl"
+              :items="reformattedUsers"
+              placeholder="Semua user"
               :loading="usersFetchStatus === 'pending'"
               @focus="handlerFocus()"
-              
-            />
+            >
+              <template #item-label="{ item }">
+                <template v-if="item">
+                  {{ item.label }}
+  
+                  <span class="text-muted text-xs">
+                    {{ item.place }}
+                  </span>
+                </template>
+              </template>
+            </USelectMenu>
           </div>
           <hr class="text-gray-200">
           <div>
-            pilih tanggal
+            <UCheckbox
+              v-model="filterDateEnabled"
+              label="Filter Tanggal"
+            />
             <UCalendar v-model="calendarValue" :default-value="defaultDate" class="p-2"/>
           </div>
         </div>
       </template>
       <template #footer>
         <div class="grid grid-cols-2 w-full gap-4">
-          <UButton block variant="outline" icon="i-lucide-filter-x" @click="openModalFilter = false">Hapus Filter</UButton>
-          <UButton block  @click="openModalFilter = false">Terapkan</UButton>
+          <UButton block variant="outline" icon="i-lucide-filter-x" @click="openModalFilter = false; filterDateEnabled = false; selectedUser = undefined">Hapus Filter</UButton>
+          <UButton block  @click="openModalFilter = false;">Terapkan</UButton>
         </div>
       </template>
     </UModal>
@@ -92,34 +103,42 @@
 
 <script lang="ts" setup>
 import type { TableColumn } from '@nuxt/ui'
-import { getReports } from '~~/utils/apiRepo/report'
+import { getUserReportsForAdmin } from '~~/utils/apiRepo/report'
 import { getUserList } from '~~/utils/apiRepo/user'
 import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
 
-const { data:reportsData, status, execute} = await getReports()
-const { getPresignedUrl } = useS3Upload()
-await execute()
-
 const { data:users, status:usersFetchStatus, execute:executeFetchUsers } = await getUserList()
 
+const filterDateEnabled = ref(false)
+const filterUserEnabled = computed(() => {
+  return !!selectedUser.value
+})
 const todayDate = today(getLocalTimeZone())
 const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
 const calendarValue = shallowRef(defaultDate)
+const filterEnabled = computed (() => {
+  return filterDateEnabled.value || filterUserEnabled.value
+})
+const formattedDatePayload = computed(() => {
+  if (!filterDateEnabled.value) return ''
+  const dd = calendarValue.value
+  return `${dd.year}-${dd.month}-${dd.day}`
+})
 
-const selectedUser = ref<UserData>()
+const selectedUser = ref<UserSelectMenuItem>()
 
 
 const openModalFilter = ref(false)
 const UButton = resolveComponent('UButton')
+// const UCheckbox = resolveComponent('UCheckbox')
+
+const { data:reportsData, status, execute } = await getUserReportsForAdmin(selectedUser, formattedDatePayload)
+const { getPresignedUrl } = useS3Upload()
+await execute()
 
 const isError = computed<boolean>(() => status.value === 'error')
 
-const columns: TableColumn<GetReport>[] = [
-  // {
-  //   accessorKey: 'formID',
-  //   header: '#',
-  //   cell: ({ row }) => `#${row.getValue('formID')}`
-  // },
+const columns = ref<TableColumn<GetReport>[]>([
   {
     accessorKey: 'createdDate',
     header: 'Date',
@@ -158,7 +177,7 @@ const columns: TableColumn<GetReport>[] = [
         onClick: () => row.toggleExpanded()
       })
   },
-]
+])
 
 async function handlerFocus() {
   if (!users.value) {
@@ -171,7 +190,18 @@ async function generateImageUrl (url:string) {
   window.open(imageUrl, '_blank')
 }
 
+const reformattedUsers = computed<UserSelectMenuItem[]>(() => {
+  if (!users.value) return [] as UserSelectMenuItem[]
+  return users.value?.data.map((user) => {
+    return {
+      label: `${user.fullname}`,
+      place: user.assignmentPlace,
+      value: String(user.masterUserID)
+    }
+  })
+
+})
 definePageMeta({
   title: 'Dokumen'
 })
-</script> 
+</script>
