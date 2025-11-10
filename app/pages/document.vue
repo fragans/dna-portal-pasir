@@ -9,6 +9,7 @@
             />
           </div>
           <div class="text-gray-400 text-xs text-center">
+            <p v-if="!filterEnabled && reportsData?.data?.length">Menampilkan semua data ({{ reportsData?.data?.length }})</p>
             <p v-if="selectedUser">{{ selectedUser?.label }} ({{ selectedUser?.value }})</p>
             <p v-if="filterDateEnabled">{{ selectedFormattedDate }}</p>
           </div>
