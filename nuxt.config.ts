@@ -19,7 +19,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@nuxt/eslint', '@nuxt/ui', '@pinia/nuxt'],
   ssr: false,
-  spaLoadingTemplate: 'app/spa-loading-template.html',
+  spaLoadingTemplate: 'spa-loading-template.html',
   pinia: {
     storesDirs: ['~/app/stores'],
   },

@@ -43,7 +43,6 @@ interface GetReport {
   modifiedDate: string
   place: string
   vehicleNo: string
-
 }
 interface ResponseGetReports {
   message: string

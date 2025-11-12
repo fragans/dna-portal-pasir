@@ -1,4 +1,5 @@
-export function getProfileById(id:string) {
+import type { FetchResponse } from 'ofetch'
+export function getProfileById(id: string) {
   const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
   const route = `detail-profile?masterUserID=${id}`
   const url = `${host}/${route}`
@@ -12,9 +13,10 @@ export function getProfileById(id:string) {
     })
     return res
   },
-  { 
-    immediate: false
-  })
+    {
+      immediate: false
+    }
+  )
 
 }
 
@@ -28,10 +30,13 @@ export function getUserList() {
         'Authorization': `Bearer ${useCookie('dpp._token').value}`
       },
       responseType: 'json',
+      onResponseError: ({response}) => {
+        handleError(response)
+      }
     })
     return res
   },
-  {immediate: false}
+    { immediate: false }
   )
 }
 
@@ -50,6 +55,19 @@ export function insertUser(payload: InsertUserPayload) {
     })
     return res
   },
-  {immediate: false}
-)
+    { immediate: false }
+  )
+}
+
+function handleError(response: FetchResponse<unknown>) {
+  const toast = useToast()
+  if (response?.status === 401) {
+    toast.add({
+      title: 'Tidak Terautentikasi',
+      description: 'Anda tidak memiliki akses',
+      color: 'error',
+    })
+  }
+
+
 }

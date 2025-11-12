@@ -63,7 +63,7 @@ export function getUserReportsByDate(uid: MaybeRef<string>, date: MaybeRef<strin
           Authorization: `Bearer ${useCookie('dpp._token').value}`,
           'Content-Type': 'application/json'
         },
-        responseType: 'json'
+        responseType: 'json',
       })
       return res
     },
@@ -91,8 +91,6 @@ export function getUserReportsForAdmin(uid: MaybeRef<UserSelectMenuItem|undefine
       if (currentDate) {
         params.startDate = currentDate
       }
-
-      console.log({params});
   
       const res = await $fetch<ResponseGetReports>(url, {
         params,
