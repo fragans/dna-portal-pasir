@@ -1,19 +1,32 @@
 <template>
   <div>
-    <section class="mt-3">
+    <section class="mt-3" :class="[showCheckbox ? 'sticky top-16 z-10 py-3' : '']">
       <UCard>
         <div class="flex justify-between">
           <div class="flex gap-2">
             <UButton
-              icon="i-lucide-download"
+              :icon="showCheckbox ? 'i-lucide-x' : 'i-lucide-download'"
+              :variant="showCheckbox ? 'subtle' : 'solid'"
+              @click="showCheckbox = !showCheckbox"
             />
+            <template v-if="showCheckbox">
+              <UButton
+                icon="i-lucide-download"
+                :disabled="selectedReports.length === 0"
+                :variant="selectedReports.length === 0 ? 'subtle' : 'solid'"
+                @click="openModalDownload = true"
+              >
+              Unduh ({{ selectedReports.length }})
+              </UButton>
+            </template>
+              
           </div>
-          <div class="text-gray-400 text-xs text-center">
+          <div v-if="!showCheckbox" class="text-gray-400 text-xs text-center">
             <p v-if="!filterEnabled && reportsData?.data?.length">Menampilkan semua data ({{ reportsData?.data?.length }})</p>
             <p v-if="selectedUser">{{ selectedUser?.label }} ({{ selectedUser?.value }})</p>
             <p v-if="filterDateEnabled">{{ selectedFormattedDate }}</p>
           </div>
-          <div>
+          <div v-if="!showCheckbox">
             <UButton
               color="primary"
               :variant=" filterEnabled ? 'subtle' : 'solid'"
@@ -30,7 +43,13 @@
     </section>
     <section class="max-w-3xl mx-auto my-3">
       <template v-if="status==='success' && reportsData">
-        <UTable :data="reportsData.data" :columns="columns"  class="flex-1">
+        <UTable
+          :key="showCheckbox ? 'with-checkbox' : 'no-checkbox'"
+          v-model:row-selection="rowSelection"
+          :data="reportsData.data"
+          :columns="columns"
+          class="flex-1"
+        >
           <template #expanded="{ row }">
             <div class="flex gap-2 flex-col justify-center">
               <div
@@ -123,6 +142,25 @@
         </div>
       </template>
     </UModal>
+    <UModal
+      v-model:open="openModalDownload"
+      title="Unduh Laporan Dokumen"
+      :description="`Unduh ${selectedReports.length} laporan dokumen yang dipilih`"
+    >
+      <template #body>
+        <div class="grid grid-cols-2 auto-rows-auto">
+          <div v-for="(report,index) in selectedReports" :key="report.formID" >
+            <span>{{index+1}}. {{ report.driverName }} ({{ dateFormatter(report.createdDate) }})</span>
+          </div>
+        </div>
+      </template>
+      <template #footer>
+        <div class="grid grid-cols-2 w-full gap-4">
+          <UButton block variant="outline" icon="i-lucide-x" @click="openModalDownload = false">Batal</UButton>
+          <UButton block color="primary" icon="i-lucide-download" :disabled="selectedReports.length === 0" @click="handleDownload()">Unduh</UButton>
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>
 
@@ -131,13 +169,31 @@ import type { TableColumn } from '@nuxt/ui'
 import { getUserReportsForAdmin } from '~~/utils/apiRepo/report'
 import { getUserList } from '~~/utils/apiRepo/user'
 import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
-
+import { downloadReportsAsCSV } from '~~/utils/reportDownload'
 const { data:users, status:usersFetchStatus, execute:executeFetchUsers } = await getUserList()
 
+interface RowSelection {
+  [rowId: string]: boolean
+}
+
+const openModalFilter = ref(false)
+const openModalDownload = ref(false)
+const showCheckbox = ref(false)
+const rowSelection = ref<RowSelection>({})
+
+const selectedReports = computed<GetReport[]>(() => {
+  if (!reportsData.value) return []
+  return reportsData.value.data.filter((_, index) => rowSelection.value[index])
+}
+)
+
+function handleDownload() {
+  downloadReportsAsCSV(selectedReports.value)
+  openModalDownload.value = false;
+}
+
+// Date Related
 const filterDateEnabled = ref(false)
-const filterUserEnabled = computed(() => {
-  return !!selectedUser.value
-})
 const todayDate = today(getLocalTimeZone())
 const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
 const calendarValue = shallowRef(defaultDate)
@@ -159,55 +215,90 @@ const selectedFormattedDate = computed(() => {
 })
 
 const selectedUser = ref<UserSelectMenuItem>()
+const filterUserEnabled = computed(() => {
+  return !!selectedUser.value
+})
 
+function dateFormatter (dateString: string) {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
 
-const openModalFilter = ref(false)
+const UCheckbox = resolveComponent('UCheckbox')
 const UButton = resolveComponent('UButton')
-// const UCheckbox = resolveComponent('UCheckbox')
 
 const { data:reportsData, status } = await getUserReportsForAdmin(selectedUser, formattedDatePayload)
 const { getPresignedUrl } = useS3Upload()
 
 const isError = computed<boolean>(() => status.value === 'error')
 
-const columns = ref<TableColumn<GetReport>[]>([
-  {
-    accessorKey: 'createdDate',
-    header: 'Date',
-    cell: ({ row }) => {
-      return new Date(row.getValue('createdDate'))
-      .toLocaleString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-      })
+const columns = computed<TableColumn<GetReport>[]>(() => {
+  const cols: TableColumn<GetReport>[] = []
+
+  // ✅ conditional checkbox column
+  if (showCheckbox.value) {
+    console.log('changed');
+    
+    cols.push({
+      id: 'select',
+      header: ({ table }) =>
+        h(UCheckbox, {
+          modelValue: table.getIsSomePageRowsSelected()
+            ? 'indeterminate'
+            : table.getIsAllPageRowsSelected(),
+          'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+            table.toggleAllPageRowsSelected(!!value),
+          'aria-label': 'Select all'
+        }),
+      cell: ({ row }) =>
+        h(UCheckbox, {
+          modelValue: row.getIsSelected(),
+          'onUpdate:modelValue': (value: boolean | 'indeterminate') =>
+            row.toggleSelected(!!value),
+          'aria-label': 'Select row'
+        }),
+    })
+  }
+
+  // ✅ your existing columns
+  cols.push(
+    {
+      accessorKey: 'createdDate',
+      header: 'Date',
+      cell: ({ row }) => {
+        return dateFormatter(row.getValue('createdDate'))
+      }
+    },
+    {
+      accessorKey: 'driverName',
+      header: 'Supir'
+    },
+    {
+      accessorKey: 'loadAmount',
+      header: 'Muatan',
+      cell: ({ row }) => `${row.getValue('loadAmount')} Ton`
+    },
+    {
+      accessorKey: '',
+      header: 'View',
+      cell: ({ row }) =>
+        h(UButton, {
+          color: 'neutral',
+          variant: 'ghost',
+          icon: 'i-lucide-chevron-down',
+          square: true,
+          'aria-label': 'Expand',
+          onClick: () => row.toggleExpanded()
+        })
     }
-  },
-  {
-    accessorKey: 'driverName',
-    header: 'Supir'
-  },
-  {
-    accessorKey: 'loadAmount',
-    header: 'Muatan',
-    cell: ({ row }) => {
-      return `${row.getValue('loadAmount')} Ton`
-    }
-  },
-  {
-    accessorKey: '',
-    header: 'View',
-    cell: ({ row }) => 
-      h(UButton, {
-        color: 'neutral',
-        variant: 'ghost',
-        icon: 'i-lucide-chevron-down',
-        square: true,
-        'aria-label': 'Expand',
-        onClick: () => row.toggleExpanded()
-      })
-  },
-])
+  )
+
+  return cols
+})
 
 async function handlerFocus() {
   if (!users.value) {
