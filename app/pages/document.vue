@@ -161,13 +161,17 @@
         </div>
       </template>
     </UModal>
+    <ModalPreviewReport
+      v-model="showPreviewModal"
+      :report="previewedReport"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import type { TableColumn } from '@nuxt/ui'
 import { getUserReportsForAdmin } from '~~/utils/apiRepo/report'
-import { getUserList } from '~~/utils/apiRepo/user'
+import { getProfileById, getUserList } from '~~/utils/apiRepo/user'
 import { CalendarDate, today, getLocalTimeZone } from '@internationalized/date'
 import { downloadReportsAsCSV } from '~~/utils/reportDownload'
 const { data:users, status:usersFetchStatus, execute:executeFetchUsers } = await getUserList()
@@ -180,6 +184,7 @@ const openModalFilter = ref(false)
 const openModalDownload = ref(false)
 const showCheckbox = ref(false)
 const rowSelection = ref<RowSelection>({})
+const userNameList = ref<UserData[]>()
 
 const selectedReports = computed<GetReport[]>(() => {
   if (!reportsData.value) return []
@@ -193,6 +198,8 @@ function handleDownload() {
 }
 
 // Date Related
+const showPreviewModal = ref(false)
+const previewedReport = ref<GetReport | null>(null)
 const filterDateEnabled = ref(false)
 const todayDate = today(getLocalTimeZone())
 const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
@@ -234,6 +241,23 @@ const UButton = resolveComponent('UButton')
 const { data:reportsData, status } = await getUserReportsForAdmin(selectedUser, formattedDatePayload)
 const { getPresignedUrl } = useS3Upload()
 
+
+const getAllReporterId  = computed(() => {
+  if (!reportsData.value?.data.length) return []
+  // get unique ids
+  const ids = reportsData.value.data.map(report => report.masterUserID)
+  return Array.from(new Set(ids))
+})
+
+watch(getAllReporterId, (newVal) => {
+  if (newVal.length) {
+    newVal.forEach(async (id) => {
+      const { data } = await getProfileById(id) // to clear cache
+      if (data.value) userNameList.value?.push(data.value.data)
+    })
+  }
+})
+
 const isError = computed<boolean>(() => status.value === 'error')
 
 const columns = computed<TableColumn<GetReport>[]>(() => {
@@ -261,6 +285,7 @@ const columns = computed<TableColumn<GetReport>[]>(() => {
             row.toggleSelected(!!value),
           'aria-label': 'Select row'
         }),
+        
     })
   }
 
@@ -274,8 +299,15 @@ const columns = computed<TableColumn<GetReport>[]>(() => {
       }
     },
     {
-      accessorKey: 'driverName',
-      header: 'Supir'
+      accessorKey: '',
+      header: 'Created By',
+      cell: ({ row }): MaybeRef<string> => {
+        const userId = row.original.masterUserID
+        if (filterUserEnabled.value && selectedUser.value) {
+          return selectedUser.value.label
+        }
+        return unref(userId)
+      }
     },
     {
       accessorKey: 'loadAmount',
@@ -285,20 +317,26 @@ const columns = computed<TableColumn<GetReport>[]>(() => {
     {
       accessorKey: '',
       header: 'View',
-      cell: ({ row }) =>
-        h(UButton, {
+      cell: ({ row }) => {
+        return h(UButton, {
           color: 'neutral',
           variant: 'ghost',
-          icon: 'i-lucide-chevron-down',
+          icon: 'i-lucide-chevron-right',
           square: true,
           'aria-label': 'Expand',
-          onClick: () => row.toggleExpanded()
+          onClick: () => {
+            showPreviewModal.value = true
+            previewedReport.value = row.original
+          }
         })
+      }
+        
     }
   )
 
   return cols
 })
+
 
 async function handlerFocus() {
   if (!users.value) {

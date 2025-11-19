@@ -53,8 +53,6 @@ export function getUserReportsByDate(uid: MaybeRef<string>, date: MaybeRef<strin
       if (!currentUid || !currentDate) {
         return null
       }
-
-      console.log({ date: currentDate });
   
       const res = await $fetch<ResponseGetReports>(url, {
         params: { startDate: currentDate, masterUserID: currentUid },

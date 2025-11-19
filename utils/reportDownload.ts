@@ -15,22 +15,22 @@ export function downloadReportsAsCSV(
 
   // Define the order of columns to export
   const headers = [
-    'batch',
+    'formID',
     'masterUserID',
+    'batch',
+    'departureDate',
+    'loadAmount',
+    'documents',
+    'driverName',
+    'vehicleNo',
+    'place',
+    'description',
     'createdDate',
     'createdBy',
     'deletedBy',
     'deletedDate',
-    'departureDate',
-    'description',
-    'documents',
-    'driverName',
-    'formID',
-    'loadAmount',
     'modifiedBy',
     'modifiedDate',
-    'place',
-    'vehicleNo'
   ]
 
   // Convert each report to a CSV row

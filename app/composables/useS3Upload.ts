@@ -109,7 +109,6 @@ export function useS3Upload() {
     }
   }
   const getPresignedUrl = async (url: string) => {
-    console.log({url});
     // url = "https://s3.ap-southeast-1.wasabisys.com/portal-bayur-jaya-v1/image/1761488700549-Screenshot%25202025-09-11%2520at%252016.07.38.png"
     const Key = generateKeyFromUrl(decodeURIComponent(url))
     // extracted = "image/1761488700549-Screenshot%25202025-09-11%2520at%252016.07.38.png"

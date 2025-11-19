@@ -3,7 +3,7 @@
     <section class="flex flex-col items-center justify-center min-h-screen gap-4">
       
       
-      <UCard class="w-full">
+      <UCard v-if="getDisplayRole === ''" class="w-full">
         <template #header>
           <h4>User</h4>
         </template>
@@ -12,7 +12,7 @@
             <UCard variant="solid" color="secondary">
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-file-plus" class="mx-auto mb-2" size="48" />
-                <span class="font-bold">Input Baru</span>
+                <span class="font-bold">Tambah Dokumen</span>
               </div>
             </UCard>
           </NuxtLink>
@@ -20,7 +20,7 @@
             <UCard variant="solid" color="secondary">
               <div class="flex flex-col gap-3 justify-center text-center">
                 <UIcon name="i-lucide-file-chart-line" class="mx-auto mb-2" size="48" />
-                <span class="font-bold">User Entries</span>
+                <span class="font-bold">Dokumen Saya</span>
               </div>
             </UCard>
           </NuxtLink>
@@ -28,7 +28,7 @@
         </div>
       </UCard>
 
-      <UCard class="w-full">
+      <UCard v-else-if="getDisplayRole === 'Administrator'" class="w-full">
         <template #header>
           <h4>Admin</h4>
         </template>
@@ -64,7 +64,11 @@
   </UMain>
 </template>
 <script setup lang="ts">
+import { useUserStore } from '~/stores/user'
+import { storeToRefs } from 'pinia'
 useHead({
   title: 'Dashboard'
 })
+const userStore = useUserStore()
+const { getDisplayRole } = storeToRefs(userStore)
 </script>
