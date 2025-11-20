@@ -172,11 +172,11 @@ function createObjectUrl (file: File): string {
   return URL.createObjectURL(file)
 }
 
-const uploadHint = 'PNG or JPG (max. 5MB per file), Minimal 1 foto'
+const uploadHint = 'PNG or JPG (max. 20MB per file), Minimal 1 foto'
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/quicktime"];
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/mov"];
 const ACCEPTED_DOC_TYPES = [...ACCEPTED_IMAGE_TYPES, ...ACCEPTED_VIDEO_TYPES];
 const formState = reactive<FormStateDocument>({
   date: undefined,
@@ -192,7 +192,7 @@ const formState = reactive<FormStateDocument>({
 const requiredMessage = 'harus diisi'
 const fileValidator = z.instanceof(File, { message: `Image ${requiredMessage}.` })
     .refine((file) => file.size <= MAX_FILE_SIZE, `Max file size is 20MB.`)
-    .refine( (file) => ACCEPTED_DOC_TYPES.includes(file.type), "Only .jpg, .jpeg, .png, .webp, .mp4, and .mov formats are supported." )
+    .refine( (file) => ACCEPTED_DOC_TYPES.includes(file.type), "Hanya mendukung format .jpg, .jpeg, .png, .webp, .mp4, and .mov" )
 const schema = z.object({
   date: z.string(`Tanggal keberangkatan ${requiredMessage}.`),
   location: z.string(`Lokasi keberangkatan ${requiredMessage}.`),
@@ -234,10 +234,30 @@ function mockUpload(job: FormJobs) {
     }, 100)
   })
 }
-
+function validateFileDokumen () {
+  const dokumenSchema = schema.pick({ dokumen: true });
+    const result = dokumenSchema.safeParse({
+      dokumen: formState.dokumen,
+    })
+    return result
+}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function onFileChange(event: Event) {
+  
   formState.dokumen.forEach( async (doc, index) => {  
+
+    const isValid = validateFileDokumen()
+    if (!isValid.success) {
+      toast.add({
+        title: 'Gagal mengunggah',
+        description: isValid.error.issues[0]!.message,
+        icon: 'i-lucide-alert-circle',
+        color: 'error',
+      })
+      formState.dokumen = []
+      return
+    }
+
     const fileKey = `${doc.type}/${doc.name}`
     const isUploaded = imgUrls.value.some((url) => url.fileKey === fileKey)
     if (!isUploaded) {
