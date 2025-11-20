@@ -28,7 +28,6 @@
                 v-for="(item, key) in row.original.documents"
                 :key="key"
               >
-                
                 <UButton
                   size="xl"
                   class="max-w-md"

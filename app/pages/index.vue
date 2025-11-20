@@ -5,7 +5,7 @@
       
       <UCard v-if="getDisplayRole === ''" class="w-full">
         <template #header>
-          <h4>User</h4>
+          <h4>Hi! {{ getFirstName }}</h4>
         </template>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
           <NuxtLink to="/form">
@@ -30,7 +30,7 @@
 
       <UCard v-else-if="getDisplayRole === 'Administrator'" class="w-full">
         <template #header>
-          <h4>Admin</h4>
+          <h4>Hi! {{ getFirstName }}</h4>
         </template>
         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
           <NuxtLink to="/users">
@@ -70,5 +70,5 @@ useHead({
   title: 'Dashboard'
 })
 const userStore = useUserStore()
-const { getDisplayRole } = storeToRefs(userStore)
+const { getDisplayRole, getFirstName } = storeToRefs(userStore)
 </script>
