@@ -40,7 +40,6 @@ const profile = computed<UserData | undefined>(() => {
   if (!data.value) return undefined
   return data.value.data
 })
-console.log(data.value);
 
 useHead({
   title: 'Profile ',

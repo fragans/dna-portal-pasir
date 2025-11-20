@@ -38,8 +38,14 @@
           </div>
         </UForm>
       </div>
-      <div v-else class="text-center">
-        <UButton to="/logout" size="xl">Logout?</UButton>
+      <div v-else class="flex flex-col gap-3 text-center">
+        <span>
+          Apakah kamu ingin keluar?
+        </span>
+        <div class="div grid grid-cols-2 gap-4">
+          <UButton variant="outline" block to="/logout" size="xl">Logout</UButton>
+          <UButton block to="/" size="xl">Ke Beranda</UButton>
+        </div>
       </div>
     </div>
   </div>
