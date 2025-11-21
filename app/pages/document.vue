@@ -321,7 +321,7 @@ const columns = computed<TableColumn<GetReport>[]>(() => {
         return h(UButton, {
           color: 'neutral',
           variant: 'ghost',
-          icon: 'i-lucide-chevron-right',
+          icon: 'i-lucide-search',
           square: true,
           'aria-label': 'Expand',
           onClick: () => {

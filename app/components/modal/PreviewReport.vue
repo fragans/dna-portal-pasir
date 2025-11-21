@@ -25,13 +25,23 @@
       <div class="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         <div v-for="img in docs" :key="img.link" class="flex">
           <template v-if="img.type === 'video'">
-            <video controls width="200" class="rounded-md border border-gray-300">
-              <source :src="img.link" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
+            <a :href="img.link" target="_blank" class="relative">
+              <div class="rounded-lg bg-black px-1 pt-1 absolute top-1 right-1 text-white opacity-60">
+                <UIcon name="i-lucide-square-arrow-out-up-right" class="size-4"/>
+              </div>
+              <video width="200" class="rounded-md border border-gray-300">
+                <source :src="img.link" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </a>
           </template>
           <template v-else>
-            <img :src="img.link" :alt="img.link" class="w-[200px] h-min-[120px] object-cover">
+            <a :href="img.link" target="_blank" class="relative">
+              <div class="rounded-lg bg-black px-1 pt-1 absolute top-1 right-1 text-white opacity-60">
+                <UIcon name="i-lucide-square-arrow-out-up-right" class="size-4"/>
+              </div>
+              <img :src="img.link" :alt="img.link" class="w-[200px] h-min-[120px] object-cover">
+            </a>
           </template>
         </div>
       </div>

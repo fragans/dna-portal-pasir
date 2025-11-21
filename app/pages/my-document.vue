@@ -5,8 +5,8 @@
         <div class=" ">
           <UAccordion
             v-model="accordionExpanded"
-            trailing-icon="i-lucide-refresh-ccw"
-            :items="[{ label: 'Filter Tanggal' , icon: 'i-lucide-calendar-days' }]"
+            :trailing-icon="accordionExpanded === 0 ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            :items="[{ label: `Tanggal: ${selectedFormattedDate}` , icon: 'i-lucide-calendar-days' }]"
           >
             <template #content>
               <UCalendar v-model="calendarValue" :default-value="defaultDate" class="p-2"/>
@@ -15,11 +15,7 @@
         </div>
       </UCard>
     </section>
-    <section class="">
-      <div class="flex justify-end">
-        <strong>{{ selectedFormattedDate }}</strong>
-      </div>
-      
+    <section class="">      
       <template v-if="status==='success' && reportsData">
         <UTable :data="reportsData.data" :columns="columns"  class="flex-1">
           <template #expanded="{ row }">
@@ -47,11 +43,10 @@
       </template>
     </section>
 
-    <!-- <UModal :open="isError" title="Gagal memuat data">
-      <template #footer>
-        error
-      </template>
-    </UModal> -->
+    <ModalPreviewReport
+      v-model="showPreviewModal"
+      :report="previewedReport"
+    />
   </div>
 </template>
 
@@ -65,7 +60,8 @@ const userStore = useUserStore()
 const { getUsername } = storeToRefs(userStore)
 
 
-
+const showPreviewModal = ref(false)
+const previewedReport = ref<GetReport | null>(null)
 
 const todayDate = today(getLocalTimeZone())
 const defaultDate = new CalendarDate(todayDate.year, todayDate.month, todayDate.day,)
@@ -133,10 +129,13 @@ const columns: TableColumn<GetReport>[] = [
       h(UButton, {
         color: 'neutral',
         variant: 'ghost',
-        icon: 'i-lucide-chevron-down',
+        icon: 'i-lucide-search',
         square: true,
         'aria-label': 'Expand',
-        onClick: () => row.toggleExpanded()
+        onClick: () => {
+          showPreviewModal.value = true
+          previewedReport.value = row.original
+        }
       })
   },
 ]
