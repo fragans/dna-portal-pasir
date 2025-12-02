@@ -31,6 +31,7 @@
             <UFormField name="birthPlace" label="Provinsi">
               <UInput v-model="birthPlace" size="xl" type="text" @change="formatterBirthDatePlace()"/>
             </UFormField>
+            {{ calendarValue }}
             <UModal
               v-model:open="calendarOpen"
               :dismissible="false"
@@ -80,6 +81,7 @@ import * as z from 'zod'
 import { insertUser } from '~~/utils/apiRepo/user'
 import type { FormErrorEvent } from '@nuxt/ui'
 import { CalendarDate } from '@internationalized/date'
+import { ca } from 'zod/v4/locales'
 
 const toast = useToast()
 
@@ -116,6 +118,8 @@ const { data, status, execute, error } = insertUser(formState)
 
 function handleSelectDate () {
   calendarOpen.value = false
+  console.log({calendarValue});
+  
 }
 
 function formatterBirthDatePlace () {

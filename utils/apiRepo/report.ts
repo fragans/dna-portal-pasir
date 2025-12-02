@@ -2,8 +2,11 @@
 import type { MaybeRef } from 'vue'
 
 export function insertDocument(payload: DocumentPayload) {
-  // https://dummyjson.com/docs/auth
-  const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/add-document'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
+  const route = 'add-document'
+  const url = `${host}/${route}`
+
   const fetchKey = computed(() => `insert-${new Date().getTime()}`)
   return useAsyncData(fetchKey, async () => {
   const res = await $fetch<ResponseInsertReport>(url, {
@@ -22,7 +25,10 @@ export function insertDocument(payload: DocumentPayload) {
 }
 
 export function getReports(){
-  const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/list-data'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
+  const route = 'list-data'
+  const url = `${host}/${route}`
   const fetchKey = computed(() => `show-${new Date().getTime()}`)
   return useAsyncData(fetchKey, async () => {
   const res = await $fetch<ResponseGetReports>(url, {
@@ -42,8 +48,10 @@ export function getReports(){
 
 
 export function getUserReportsByDate(uid: MaybeRef<string>, date: MaybeRef<string>){
-  const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/list-data'
-  
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
+  const route = 'list-data'
+  const url = `${host}/${route}`
   return useAsyncData(
     () => `list-data-${unref(uid)}-${unref(date)}`, 
     async () => {
@@ -71,7 +79,10 @@ export function getUserReportsByDate(uid: MaybeRef<string>, date: MaybeRef<strin
 }
 
 export function getUserReportsForAdmin(uid: MaybeRef<UserSelectMenuItem|undefined>, date: MaybeRef<string>){
-  const url = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main/list-data'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
+  const route = 'list-data'
+  const url = `${host}/${route}`
   
   return useAsyncData(
     () => `list-data-${unref(uid)?.value}-${unref(date)}`, 

@@ -23,4 +23,9 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ['~/app/stores'],
   },
+  runtimeConfig: {
+    public: {
+      VITE_API_HOST: process.env.VITE_API_HOST
+    }
+  }
 })

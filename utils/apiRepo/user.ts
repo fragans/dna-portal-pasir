@@ -1,6 +1,7 @@
 import type { FetchResponse } from 'ofetch'
 export function getProfileById(id: string) {
-  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
   const route = `detail-profile?masterUserID=${id}`
   const url = `${host}/${route}`
   return useAsyncData('user-profile', async () => {
@@ -21,7 +22,8 @@ export function getProfileById(id: string) {
 }
 
 export function getUserList() {
-  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
   const route = `list-user`
   const url = `${host}/${route}`
   return useAsyncData('user-list', async () => {
@@ -41,7 +43,8 @@ export function getUserList() {
 }
 
 export function insertUser(payload: InsertUserPayload) {
-  const host = 'https://api-bayur-jaya.dnabisa.com/bayur-jaya-main'
+  const { VITE_API_HOST } = useRuntimeConfig().public
+  const host = VITE_API_HOST
   const route = 'add-user'
   const url = `${host}/${route}`
   return useAsyncData('insert-user', async () => {
