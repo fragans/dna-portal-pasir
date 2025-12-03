@@ -64,7 +64,6 @@ const items = computed<NavigationMenuItem[]>(() => {
 const config = useRuntimeConfig()
 
 onMounted(() => {
-  console.log(`App Version: ${config.public.appVersion}`)
-  console.log(`Commit Hash: ${config.public.commitHash}`)
+  console.log(`App Version: ${config.public.appVersion}#${config.public.commitHash}`)
 })
 </script>
