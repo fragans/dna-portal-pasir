@@ -136,10 +136,6 @@ const formattedDate = computed(() => {
   const zeroIndexedMonth = calendarValue.value.month - 1;
   const year = calendarValue.value.year;
 
-  console.log(day);
-  console.log(calendarValue.value.month); // The original 1-indexed value
-  console.log(year);
-
   // This is the problematic part. The month formatter often expects a Date object.
   // A common fix is to create a temporary Date object *just* for the month formatting:
 

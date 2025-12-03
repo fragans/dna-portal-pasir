@@ -1,5 +1,6 @@
 {
   "name": "dna-portal-pasir",
+  "version": "1.0.6",
   "type": "module",
   "private": true,
   "scripts": {

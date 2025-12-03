@@ -1,3 +1,14 @@
+import { readFileSync } from 'node:fs'
+import { execSync } from 'node:child_process'
+
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'))
+let commitHash = ''
+try {
+  commitHash = execSync('git rev-parse --short HEAD').toString().trim()
+} catch {
+  console.warn('Could not get git commit hash')
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   app:{
@@ -25,7 +36,9 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      VITE_API_HOST: process.env.VITE_API_HOST
+      VITE_API_HOST: process.env.VITE_API_HOST,
+      appVersion: packageJson.version,
+      commitHash: commitHash
     }
   }
 })
