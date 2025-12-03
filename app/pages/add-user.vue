@@ -81,7 +81,6 @@ import * as z from 'zod'
 import { insertUser } from '~~/utils/apiRepo/user'
 import type { FormErrorEvent } from '@nuxt/ui'
 import { CalendarDate } from '@internationalized/date'
-import { ca } from 'zod/v4/locales'
 
 const toast = useToast()
 
@@ -132,7 +131,32 @@ function formatterBirthDatePlace () {
 }
 
 const formattedDate = computed(() => {
-  return  calendarValue.value.day + ' ' + formatter.format(calendarValue.value.month) + ' ' + calendarValue.value.year
+  const day = calendarValue.value.day;
+  // Subtract 1 from the month to convert from 1-indexed (1-12) to 0-indexed (0-11)
+  const zeroIndexedMonth = calendarValue.value.month - 1;
+  const year = calendarValue.value.year;
+
+  console.log(day);
+  console.log(calendarValue.value.month); // The original 1-indexed value
+  console.log(year);
+
+  // This is the problematic part. The month formatter often expects a Date object.
+  // A common fix is to create a temporary Date object *just* for the month formatting:
+
+  // Create a Date object set to the *first* day of the desired month/year.
+  // We use 0 for the month to get January, so we use zeroIndexedMonth.
+  const dateForFormatting = new Date(year, zeroIndexedMonth, day); 
+
+  // Now, pass the full Date object to the formatter.
+  // Assuming 'formatter' is an Intl.DateTimeFormat object configured to output a month name.
+  // e.g., new Intl.DateTimeFormat('en-US', { month: 'long' })
+  const formattedMonth = formatter.format(dateForFormatting);
+
+  // If formatter is an Intl.DateTimeFormat object, this is much better:
+  // return formatter.format(dateForFormatting);
+
+  // But sticking to your original format:
+  return day + ' ' + formattedMonth + ' ' + year;
 })  
 
 async function handleFormSubmit () {
