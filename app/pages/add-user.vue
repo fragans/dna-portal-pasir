@@ -147,15 +147,7 @@ const formattedDate = computed(() => {
   // We use 0 for the month to get January, so we use zeroIndexedMonth.
   const dateForFormatting = new Date(year, zeroIndexedMonth, day); 
 
-  // Now, pass the full Date object to the formatter.
-  // Assuming 'formatter' is an Intl.DateTimeFormat object configured to output a month name.
-  // e.g., new Intl.DateTimeFormat('en-US', { month: 'long' })
   const formattedMonth = formatter.format(dateForFormatting);
-
-  // If formatter is an Intl.DateTimeFormat object, this is much better:
-  // return formatter.format(dateForFormatting);
-
-  // But sticking to your original format:
   return day + ' ' + formattedMonth + ' ' + year;
 })  
 
